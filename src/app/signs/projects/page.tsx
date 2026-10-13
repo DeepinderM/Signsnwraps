@@ -1,0 +1,5 @@
+import type { Metadata } from "next";
+import { projects } from "@/lib/data/content";
+import { ProjectCard } from "@/components/sections/blocks";
+export const metadata:Metadata={title:"Signs & Print Projects",description:"Selected Signsnwraps signage and print project examples. Replace launch placeholders with approved verified case studies.",alternates:{canonical:"/signs/projects"}};
+export default function Page(){const examples=projects.filter(project=>["Commercial signage","Retail"].includes(project.category));return <><section className="signs-project-intro"><div className="container"><span className="eyebrow">SIGNS · PRINT · PROJECTS</span><h1 className="heading-xl">Work that makes<br/>a brand visible.</h1><p className="body-lg">Selected examples. Project descriptions and imagery are placeholders until approved case studies are supplied.</p></div></section><section className="section"><div className="container signs-project-grid">{examples.map(project=><ProjectCard project={project} key={project.slug}/>)}</div></section></>;}

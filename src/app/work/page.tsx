@@ -1,0 +1,6 @@
+import type { Metadata } from "next";
+import { projects } from "@/lib/data/content";
+import { ProjectCard, ConsultationCTA } from "@/components/sections/blocks";
+export const metadata:Metadata={title:"Our Work",description:"Explore selected signage, vehicle wrap and protection projects from Signsnwraps across Melbourne.",alternates:{canonical:"/work"}};
+export default function WorkPage(){return <><section className="page-intro"><div className="container"><span className="eyebrow">SELECTED PROJECTS</span><h1 className="heading-xl">Made with intent.<br/>Built to be seen.</h1><p className="body-lg">Every project begins with a brief. Here&apos;s a look at the kind of thoughtful work our team loves bringing to life.</p></div></section><section className="section" style={{paddingTop:10}}><div className="container work-grid">{projects.map(p=><ProjectCard key={p.slug} project={p} featured/>)}</div></section><ConsultationCTA title="Your project could be next."/><style>{`.page-intro{padding:90px 0 52px}.page-intro h1{margin:20px 0}.page-intro p{max-width:610px}.work-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:46px 24px}@media(max-width:640px){.work-grid{grid-template-columns:1fr;gap:30px}}`}</style></>;
+}
