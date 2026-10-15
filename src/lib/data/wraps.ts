@@ -30,7 +30,6 @@ export const colourFilms = [
   { name: "Deep Navy", hex: "#182b43", finish: "Satin" },
 ];
 
-export const filmHighlights = ["7.5 mil film thickness", "Self-healing top coat", "Anti-yellowing construction", "Gloss finish and stain resistance"];
 
 export const kitCategories = [
   { slug: "colour", title: "Colour PPF kits", description: "Make a statement with coloured protection film, cut for selected panels and vehicle patterns.", count: "Colour range" },

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { pageMetadata } from "@/lib/seo";
 
 const docs: Record<string, { title: string; summary: string }> = {
   privacy: {
@@ -28,7 +29,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  return docs[slug] ? { title: docs[slug].title, alternates: { canonical: `/legal/${slug}` } } : { title: "Page not found" };
+  return docs[slug] ? pageMetadata({ title: docs[slug].title, description: `${docs[slug].title} for the Signsnwraps website, covering signage, printing, vehicle wrap and paint protection film services and online orders.`, path: `/legal/${slug}` }) : { title: "Page not found" };
 }
 
 export default async function LegalPage({ params }: Props) {

@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Image from "next/image";
 import Link from "next/link";
 import { services, projects, industries } from "@/lib/data/content";
 import { ServiceCard, ProjectCard, ConsultationCTA } from "@/components/sections/blocks";
 import { BrandStorySection } from "@/components/sections/brand-story";
 import { ProudPartners } from "@/components/sections/proud-partners";
+import { FaqSection } from "@/components/seo/faq-section";
 
-export const metadata: Metadata = {
-  title: "Signs & Print",
-  description: "Make your brand stand out with commercial signage, shopfronts, print, neon, fabrication and installation from Signsnwraps in Melbourne.",
-  alternates: { canonical: "/signs" },
-};
+export const metadata: Metadata = pageMetadata({ title: "Signage & Printing Melbourne", description: "Shopfront and building signs, printing, neon and fleet signage, planned, made and installed by Signsnwraps in Laverton North, Melbourne. Get expert advice.", path: "/signs" });
 
 const signServices = services.filter((service) => ["signage", "printing"].includes(service.slug));
 const partnerOrganizationSchema = {
@@ -57,9 +55,10 @@ export default function SignsHomePage() {
           <p className="body-lg">From shopfronts and offices to events and multi-site rollouts, get expert advice before production begins.</p>
         </div>
         <div className="grid-2 signs-service-grid">{signServices.map((service) => <ServiceCard key={service.slug} service={service} hrefPrefix="/signs"/>)}</div>
-        <div className="pillar-links"><Link href="/signs/signage">Explore custom signage ↗</Link><Link href="/signs/printing">Explore print & banners ↗</Link><Link href="/signs/shopfronts">Plan a storefront ↗</Link></div>
+        <div className="pillar-links"><Link href="/signs/signage">Explore custom signage ↗</Link><Link href="/signs/printing">Explore print & banners ↗</Link><Link href="/signs/shopfronts">Plan a storefront ↗</Link><Link href="/signs/fleet">Fleet signage ↗</Link></div>
       </div>
     </section>
+
 
     <BrandStorySection />
 
@@ -81,8 +80,15 @@ export default function SignsHomePage() {
     </section>
 
     <ProudPartners variant="cards" />
+    <section className="signs-fleet-band">
+      <div className="container signs-fleet-inner">
+        <div><span className="eyebrow">NEW · FLEET SIGNAGE</span><h2 className="heading-lg">Put your brand<br/>on the road.</h2><p className="body-lg">Lettering, graphics and safety markings for cars, utes, vans, trucks and trailers, rolled out consistently across your fleet.</p></div>
+        <div className="signs-fleet-actions"><Link className="button button-orange" href="/signs/fleet#fleet-book">Book a Fleet Consultation ↗</Link><Link className="button signs-outline" href="/signs/fleet#fleet-quote">Get a Fleet Quote ↗</Link><Link className="text-link" href="/signs/fleet">Explore fleet signage ↗</Link></div>
+      </div>
+    </section>
+    <FaqSection page="signs" />
     <ConsultationCTA title="Have a signage project in mind?" text="Book a signage consultation in Laverton North. We'll help you plan with confidence."/>
 
-    <style>{`.signs-hero{background:#000;color:#fff;padding:56px 0}.signs-hero-grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:5%;align-items:center}.signs-hero h1{font-size:clamp(3.1rem,6vw,6rem);line-height:.96;letter-spacing:-.07em;text-transform:uppercase;margin:22px 0}.signs-hero h1 em{color:var(--electric-blue);font-style:normal}.signs-hero .body-lg{font-size:15px;color:#ddd;max-width:510px}.signs-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}.signs-actions .button{font-size:10px}.signs-outline{background:transparent;color:#fff;border-color:#fff}.signs-outline:hover{background:#fff;color:#000}.signs-hero-image{height:480px;position:relative}.signs-hero-image img{object-fit:cover}.signs-hero-image:after{content:"";position:absolute;inset:65% 0 0;background:linear-gradient(transparent,#000a)}.signs-hero-image span{position:absolute;z-index:1;bottom:18px;left:20px;font-size:9px;letter-spacing:.15em}.signs-trust{display:flex;gap:11px;align-items:center;margin-top:34px;color:#ccc;font-size:8px;letter-spacing:.1em}.signs-trust i{font-style:normal;color:var(--electric-blue)}.signs-services{background:#fff}.signs-service-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pillar-links{border-top:1px solid #ddd;margin-top:28px;padding-top:20px;display:flex;gap:26px;flex-wrap:wrap}.pillar-links a{font-size:11px;font-weight:700}.pillar-links a:hover{color:var(--electric-blue)}.signs-projects{background:#f4f4f4}.sign-industries{background:#000;color:#fff}.industries-strip{display:grid;grid-template-columns:1fr 1fr;gap:10%;align-items:center}.industries-strip .body-lg{font-size:14px;color:#ddd;max-width:450px;margin-bottom:20px}.industries-strip .text-link{color:white}.industry-chips{display:grid;grid-template-columns:1fr 1fr}.industry-chips a{padding:16px 0;border-top:1px solid #ffffff45;display:flex;justify-content:space-between;font-size:13px}.industry-chips span{color:var(--electric-blue)}@media(max-width:700px){.signs-hero{padding:35px 0}.signs-hero-grid{grid-template-columns:1fr;gap:28px}.signs-hero-image{height:65vw;min-height:250px}.signs-service-grid{grid-template-columns:1fr}.industries-strip{grid-template-columns:1fr;gap:30px}.industry-chips a{font-size:12px}.pillar-links{gap:14px 20px}}`}</style>
+    <style>{`.signs-fleet-band{background:#000;color:#fff;padding:64px 0;border-top:1px solid #ffffff20}.signs-fleet-inner{display:grid;grid-template-columns:1.2fr 1fr;gap:6%;align-items:center}.signs-fleet-band h2{margin:16px 0 12px}.signs-fleet-band .body-lg{color:#ddd;font-size:15px;max-width:540px}.signs-fleet-band .eyebrow{color:var(--electric-blue)}.signs-fleet-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.signs-fleet-actions .button{font-size:12px}.signs-fleet-actions .text-link{color:#fff}@media(max-width:800px){.signs-fleet-inner{grid-template-columns:1fr;gap:24px}}.signs-hero{background:#000;color:#fff;padding:56px 0}.signs-hero-grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:5%;align-items:center}.signs-hero h1{font-size:clamp(3.1rem,6vw,6rem);line-height:.96;letter-spacing:-.07em;text-transform:uppercase;margin:22px 0}.signs-hero h1 em{color:var(--electric-blue);font-style:normal}.signs-hero .body-lg{font-size:15px;color:#ddd;max-width:510px}.signs-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}.signs-actions .button{font-size:10px}.signs-outline{background:transparent;color:#fff;border-color:#fff}.signs-outline:hover{background:#fff;color:#000}.signs-hero-image{height:480px;position:relative}.signs-hero-image img{object-fit:cover}.signs-hero-image:after{content:"";position:absolute;inset:65% 0 0;background:linear-gradient(transparent,#000a)}.signs-hero-image span{position:absolute;z-index:1;bottom:18px;left:20px;font-size:9px;letter-spacing:.15em}.signs-trust{display:flex;gap:11px;align-items:center;margin-top:34px;color:#ccc;font-size:8px;letter-spacing:.1em}.signs-trust i{font-style:normal;color:var(--electric-blue)}.signs-services{background:#fff}.signs-service-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pillar-links{border-top:1px solid #ddd;margin-top:28px;padding-top:20px;display:flex;gap:26px;flex-wrap:wrap}.pillar-links a{font-size:11px;font-weight:700}.pillar-links a:hover{color:var(--electric-blue)}.signs-projects{background:#f4f4f4}.sign-industries{background:#000;color:#fff}.industries-strip{display:grid;grid-template-columns:1fr 1fr;gap:10%;align-items:center}.industries-strip .body-lg{font-size:14px;color:#ddd;max-width:450px;margin-bottom:20px}.industries-strip .text-link{color:white}.industry-chips{display:grid;grid-template-columns:1fr 1fr}.industry-chips a{padding:16px 0;border-top:1px solid #ffffff45;display:flex;justify-content:space-between;font-size:13px}.industry-chips span{color:var(--electric-blue)}@media(max-width:700px){.signs-hero{padding:35px 0}.signs-hero-grid{grid-template-columns:1fr;gap:28px}.signs-hero-image{height:65vw;min-height:250px}.signs-service-grid{grid-template-columns:1fr}.industries-strip{grid-template-columns:1fr;gap:30px}.industry-chips a{font-size:12px}.pillar-links{gap:14px 20px}}`}</style>
   </>;
 }

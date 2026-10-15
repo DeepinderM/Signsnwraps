@@ -5,3 +5,9 @@ out
 !.env.example
 .DS_Store
 *.tsbuildinfo
+.firebase
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*-service-account*.json
+.emulator-data

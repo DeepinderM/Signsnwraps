@@ -1,14 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { Industry, Project, Service } from "@/lib/data/content";
+import { serviceHref, type Industry, type Project, type Service } from "@/lib/data/content";
 
-export function ServiceCard({ service, hrefPrefix = "/services" }: { service: Service; hrefPrefix?: string }) {
-  const href = `${hrefPrefix}/${service.slug}`;
+export function ServiceCard({ service, hrefPrefix }: { service: Service; hrefPrefix?: string }) {
+  const href = hrefPrefix ? `${hrefPrefix}/${service.slug}` : serviceHref(service.slug);
   return <article className="service-card"><Link className="service-image image-frame" href={href}><Image src={service.image} alt={`${service.title} project by Signsnwraps`} fill sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 33vw" /></Link><div className="service-card-content"><span className="eyebrow">{service.eyebrow.split(" · ")[0]}</span><h3><Link href={href}>{service.title}</Link></h3><p>{service.short}</p><Link className="text-link" href={href}>Explore service <span>↗</span></Link></div><style>{`.service-card{background:white}.service-image{display:block;aspect-ratio:1.35}.service-card-content{padding:23px 23px 25px}.service-card h3{font-size:24px;letter-spacing:-.045em;margin:11px 0}.service-card p{font-size:13px;color:#6a716b;line-height:1.6;min-height:42px;margin:0 0 19px}.service-card .text-link{font-size:11px}`}</style></article>;
 }
 
 export function ProjectCard({ project, featured = false }: { project: Project; featured?: boolean }) {
-  return <article className={`project-card${featured ? " project-featured" : ""}`}><Link className="project-image image-frame" href={`/work/${project.slug}`}><Image src={project.image} alt={`${project.title}, ${project.category} project`} fill sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 50vw" /></Link><div className="project-meta"><span>{project.category} <i>·</i> {project.location}</span><h3><Link href={`/work/${project.slug}`}>{project.title}</Link></h3><span className="project-arrow">↗</span></div><style>{`.project-image{display:block;aspect-ratio:${featured ? "1.32" : "1.18"}}.project-meta{position:relative;padding:19px 34px 2px 0}.project-meta>span:first-child{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#727972}.project-meta i{color:var(--orange);font-style:normal;padding:0 4px}.project-meta h3{font-size:21px;letter-spacing:-.04em;margin:8px 0}.project-arrow{position:absolute;right:0;bottom:4px;font-size:18px;color:var(--orange)}`}</style></article>;
+  return <article className={`project-card${featured ? " project-featured" : ""}`}><Link className="project-image image-frame" href={`/work/${project.slug}`}><Image src={project.image} alt={`${project.title}, ${project.category} project`} fill sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 50vw" /></Link><div className="project-meta"><span>{project.category} <i>·</i> {project.location}</span><h3><Link href={`/work/${project.slug}`}>{project.title}</Link></h3><span className="project-arrow">↗</span></div><style>{`.project-image{display:block;aspect-ratio:${featured ? "1.32" : "1.18"}}.project-meta{position:relative;padding:19px 34px 2px 0}.project-meta>span:first-child{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#727972}.project-meta i{color:var(--electric-blue-ink);font-style:normal;padding:0 4px}.project-meta h3{font-size:21px;letter-spacing:-.04em;margin:8px 0}.project-arrow{position:absolute;right:0;bottom:4px;font-size:18px;color:var(--electric-blue-ink)}`}</style></article>;
 }
 
 export function IndustryCard({ industry }: { industry: Industry }) {

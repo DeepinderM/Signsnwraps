@@ -1,0 +1,11 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { ColourKitsPage, KitCategoryPage } from "@/components/wraps/catalog-pages";
+import { kitCategories, kitCoverage } from "@/lib/data/wraps";
+import { pageMetadata } from "@/lib/seo";
+const seo:Record<string,[string,string]>={colour:["Colour PPF: Coloured Paint Protection Film","Coloured paint protection film sheets in gloss and satin finishes for accents, panels and details. Order online with Australia-wide shipping from Signsnwraps."],universal:["Universal PPF Protection Pieces","Universal paint protection film pieces for door cups, door edges, boot sills and mirror caps. Easy DIY protection for most vehicles, shipped Australia-wide."],"replacement-panels":["Replacement PPF Kit Panels","Replace a single damaged or worn paint protection film piece from your kit, such as a bonnet, bumper or mirror piece. Add your vehicle details at checkout."],tools:["PPF Install Tools & Aftercare","Squeegees, slip solution, install kits and aftercare spray for fitting and maintaining paint protection film. Shop PPF tools online from Signsnwraps."]};
+// Shares the [make] segment with /wraps/kits/[make]/[model]; here the value is a category or coverage slug.
+type Props={params:Promise<{make:string}>};
+export const dynamic = "force-dynamic";
+export async function generateMetadata({params}:Props):Promise<Metadata>{const {make:category}=await params;const productCategory=kitCategories.find(x=>x.slug===category);const coverage=kitCoverage.find(x=>x.slug===category);const title=productCategory?.title??coverage?.name;const description=productCategory?.description??coverage?.detail;if(!title||!description)return{title:"Kit category not found"};const [seoTitle,seoDescription]=seo[category]??[`${title} PPF Kits by Vehicle`,`${description} Pre-cut ${title.toLowerCase()} paint protection film kits for popular utes, 4WDs, SUVs and cars. Order online or book a studio fit.`];return pageMetadata({title:seoTitle,description:seoDescription.slice(0,160),path:`/wraps/kits/${category}`});}
+export default async function Page({params}:Props){const {make:category}=await params;const item=kitCategories.some(x=>x.slug===category)||kitCoverage.some(x=>x.slug===category);if(!item)notFound();return category==="colour"?<ColourKitsPage/>:<KitCategoryPage slug={category}/>;}

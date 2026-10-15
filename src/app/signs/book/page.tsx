@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { BookingWizard } from "@/components/forms/intake-forms";
 
-export const metadata: Metadata = {
-  title: "Book a Signage Consultation",
-  description: "Book an in-store or on-site signage consultation with Signsnwraps in Laverton North.",
-  alternates: { canonical: "/signs/book" },
-};
+export const metadata: Metadata = pageMetadata({ title: "Book a Signage Consultation", description: "Book a signage or print consultation at the Signsnwraps studio in Laverton North, Melbourne. Bring your brief, sketch or question and plan it with us.", path: "/signs/book" });
 
 export default function SignsBookingPage() {
   return (

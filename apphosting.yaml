@@ -1,0 +1,36 @@
+# Firebase App Hosting (runs the Next.js app on Cloud Run in your GCP project).
+# https://firebase.google.com/docs/app-hosting/configure
+runConfig:
+  minInstances: 0
+  maxInstances: 4
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 1024
+
+env:
+  # Public site URL: used for Stripe redirect URLs, canonical tags and the sitemap.
+  # Change to https://signsnwraps.com.au once the custom domain is connected.
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: https://signsnwraps.com.au
+    availability: [BUILD, RUNTIME]
+
+  # Comma-separated Google accounts allowed into /admin.
+  - variable: ADMIN_EMAILS
+    value: replace-with-staff@example.com
+    availability: [RUNTIME]
+
+  # Optional: email new booking/quote requests to these addresses (comma-separated).
+  # Requires the Firebase "Trigger Email from Firestore" extension, which sends documents in the `mail` collection.
+  # - variable: ENQUIRY_NOTIFY_EMAIL
+  #   value: hello@signsnwraps.com.au
+  #   availability: [RUNTIME]
+
+  # Stored in Cloud Secret Manager. Create them with:
+  #   firebase apphosting:secrets:set stripe-secret-key
+  #   firebase apphosting:secrets:set stripe-webhook-secret
+  - variable: STRIPE_SECRET_KEY
+    secret: stripe-secret-key
+    availability: [RUNTIME]
+  - variable: STRIPE_WEBHOOK_SECRET
+    secret: stripe-webhook-secret
+    availability: [RUNTIME]

@@ -47,5 +47,12 @@ export const testimonials = [
   { quote: "Having one point of contact made a complicated branding project feel much more manageable.", name: "Business customer", context: "Victoria · Fleet branding", approved: false },
 ];
 
+/** Services customers can choose on the booking and quote forms (validated server-side too). */
+export const enquiryServices = [...services.map(({ title }) => title), "Fleet signage", "Fleet wraps", "General consultation"];
+
+/** Services that live on the Signs or Wraps side; /services/<slug> permanently redirects to these (see next.config.ts). */
+export const serviceHomes: Record<string, string> = { signage: "/signs/signage", printing: "/signs/printing", "vehicle-wraps": "/wraps/vehicle-wraps", ppf: "/wraps/ppf" };
+export const serviceHref = (slug: string) => serviceHomes[slug] ?? `/services/${slug}`;
+
 export const serviceFor = (slug: string) => services.find((service) => service.slug === slug);
 export const locationFor = (slug: string) => locations.find((location) => location.slug === slug);
