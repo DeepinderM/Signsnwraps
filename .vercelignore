@@ -1,0 +1,9 @@
+# Never upload local-only config or data to Vercel
+.env.local
+.env.*.local
+.emulator-data
+.firebase
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+docs
