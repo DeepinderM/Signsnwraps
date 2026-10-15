@@ -34,8 +34,8 @@ export default function SignsHomePage() {
           <h1 className="heading-xl">Make your brand<br/><em>stand out.</em></h1>
           <p className="body-lg">Signs, print and complete brand presentation. We help you plan the right solution, make it with care and deliver it professionally.</p>
           <div className="signs-actions">
-            <Link className="button button-orange" href="/signs/book">Book a Signage Consultation ↗</Link>
-            <Link className="button signs-outline" href="/quote">Get a Quote ↗</Link>
+            <Link className="button button-orange" href="/signs/book">Book a Signage Consultation</Link>
+            <Link className="button signs-outline" href="/quote">Get a Quote</Link>
           </div>
           <div className="signs-trust"><span>IDEA</span><i>→</i><span>PLANNING</span><i>→</i><span>PRODUCTION</span><i>→</i><span>INSTALLATION</span></div>
         </div>
@@ -55,7 +55,7 @@ export default function SignsHomePage() {
           <p className="body-lg">From shopfronts and offices to events and multi-site rollouts, get expert advice before production begins.</p>
         </div>
         <div className="grid-2 signs-service-grid">{signServices.map((service) => <ServiceCard key={service.slug} service={service} hrefPrefix="/signs"/>)}</div>
-        <div className="pillar-links"><Link href="/signs/signage">Explore custom signage ↗</Link><Link href="/signs/printing">Explore print & banners ↗</Link><Link href="/signs/shopfronts">Plan a storefront ↗</Link><Link href="/signs/fleet">Fleet signage ↗</Link></div>
+        <div className="pillar-links"><Link href="/signs/signage">Explore custom signage</Link><Link href="/signs/printing">Explore print & banners</Link><Link href="/signs/shopfronts">Plan a storefront</Link><Link href="/signs/fleet">Fleet signage</Link></div>
       </div>
     </section>
 
@@ -66,7 +66,7 @@ export default function SignsHomePage() {
       <div className="container">
         <div className="section-head">
           <div><span className="eyebrow">SELECTED PROJECTS</span><h2 className="heading-lg">Built to stand out.</h2></div>
-          <Link className="text-link" href="/work">View projects ↗</Link>
+          <Link className="text-link" href="/work">View projects</Link>
         </div>
         <div className="grid-2">{projects.filter((project) => ["Commercial signage", "Retail"].includes(project.category)).slice(0, 2).map((project) => <ProjectCard key={project.slug} project={project}/>)}</div>
       </div>
@@ -74,8 +74,8 @@ export default function SignsHomePage() {
 
     <section className="section sign-industries">
       <div className="container industries-strip">
-        <div><span className="eyebrow">FOR BUSINESS, RETAIL & MORE</span><h2 className="heading-lg">One strong brand.<br/>Every touchpoint.</h2><p className="body-lg">Explore signage and print solutions for retail, hospitality, property, automotive, corporate and growing multi-site businesses.</p><Link className="text-link" href="/industries">Explore industries ↗</Link></div>
-        <div className="industry-chips">{industries.slice(0, 8).map((industry) => <Link href={`/industries/${industry.slug}`} key={industry.slug}>{industry.title}<span>↗</span></Link>)}</div>
+        <div><span className="eyebrow">FOR BUSINESS, RETAIL & MORE</span><h2 className="heading-lg">One strong brand.<br/>Every touchpoint.</h2><p className="body-lg">Explore signage and print solutions for retail, hospitality, property, automotive, corporate and growing multi-site businesses.</p><Link className="text-link" href="/industries">Explore industries</Link></div>
+        <div className="industry-chips">{industries.slice(0, 8).map((industry) => <Link href={`/industries/${industry.slug}`} key={industry.slug}>{industry.title}</Link>)}</div>
       </div>
     </section>
 
@@ -83,7 +83,7 @@ export default function SignsHomePage() {
     <section className="signs-fleet-band">
       <div className="container signs-fleet-inner">
         <div><span className="eyebrow">NEW · FLEET SIGNAGE</span><h2 className="heading-lg">Put your brand<br/>on the road.</h2><p className="body-lg">Lettering, graphics and safety markings for cars, utes, vans, trucks and trailers, rolled out consistently across your fleet.</p></div>
-        <div className="signs-fleet-actions"><Link className="button button-orange" href="/signs/fleet#fleet-book">Book a Fleet Consultation ↗</Link><Link className="button signs-outline" href="/signs/fleet#fleet-quote">Get a Fleet Quote ↗</Link><Link className="text-link" href="/signs/fleet">Explore fleet signage ↗</Link></div>
+        <div className="signs-fleet-actions"><Link className="button button-orange" href="/signs/fleet#fleet-book">Book a Fleet Consultation</Link><Link className="button signs-outline" href="/signs/fleet#fleet-quote">Get a Fleet Quote</Link><Link className="text-link" href="/signs/fleet">Explore fleet signage</Link></div>
       </div>
     </section>
     <FaqSection page="signs" />

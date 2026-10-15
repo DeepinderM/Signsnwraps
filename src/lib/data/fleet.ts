@@ -44,7 +44,7 @@ export const fleetSides = {
     typesIntro: "From a single ute to a national rollout, we match the signage to how each vehicle is used, so your brand is easy to read on the road and on site.",
     typesLegend: "Signage you're interested in",
     types: signsTypes,
-    crossLink: { text: "Want a full wrap or colour change across the fleet?", label: "See fleet wraps ↗", href: "/wraps/fleet" },
+    crossLink: { text: "Want a full wrap or colour change across the fleet?", label: "See fleet wraps", href: "/wraps/fleet" },
     process: process("Installs booked around your roster so vehicles stay on the road."),
     imageAlt: "Commercial vehicle ready for fleet signage",
     faqs: [
@@ -64,7 +64,7 @@ export const fleetSides = {
     typesIntro: "A wrapped fleet is a moving billboard that also protects the paint underneath. We plan the design, film and coverage around how hard each vehicle works.",
     typesLegend: "Work you're interested in",
     types: wrapsTypes,
-    crossLink: { text: "Only need lettering, magnetic signs or safety markings?", label: "See fleet signage ↗", href: "/signs/fleet" },
+    crossLink: { text: "Only need lettering, magnetic signs or safety markings?", label: "See fleet signage", href: "/signs/fleet" },
     process: process("Vehicles booked into the studio in batches around your roster so the fleet stays on the road."),
     imageAlt: "Vehicle ready for a fleet wrap",
     faqs: [

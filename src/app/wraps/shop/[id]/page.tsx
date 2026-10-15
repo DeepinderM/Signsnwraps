@@ -39,7 +39,7 @@ export default async function ProductPage({ params }: Props) {
         <TestModeBanner/>
         <AddToCart product={product} showQty/>
         <small className="cart-notice">Shipping {formatAud(SHIPPING_FLAT_CENTS)} Australia-wide, free over {formatAud(FREE_SHIPPING_OVER_CENTS)}, or free click & collect at Laverton North.</small>
-        {vehicle && <p className="shop-fitment">Made for the <b>{vehicle.make.name} {vehicle.model.name}</b> ({vehicle.model.years.at(-1)}–{vehicle.model.years[0]}). Check your year, trim and body variant before ordering. <Link href={`/wraps/kits/${vehicle.make.slug}/${vehicle.model.slug}`}>See all {vehicle.model.name} kits ↗</Link></p>}
+        {vehicle && <p className="shop-fitment">Made for the <b>{vehicle.make.name} {vehicle.model.name}</b> ({vehicle.model.years.at(-1)}–{vehicle.model.years[0]}). Check your year, trim and body variant before ordering. <Link href={`/wraps/kits/${vehicle.make.slug}/${vehicle.model.slug}`}>See all {vehicle.model.name} kits</Link></p>}
         <Link className="text-link" href={`/wraps/shop?category=${product.category}`}>← More {categoryName(product.category).toLowerCase()}</Link>
       </div>
     </div></section>

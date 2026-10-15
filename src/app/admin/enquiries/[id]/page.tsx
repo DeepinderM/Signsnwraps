@@ -22,7 +22,7 @@ export default async function AdminEnquiryPage({ params }: { params: Promise<{ i
   return <>
     <AdminNav email={admin.email} />
     <Link className="text-link" href="/admin/enquiries">← Enquiries</Link>
-    <div className="admin-head"><div><h1>{enquiry.type === "booking" ? "Appointment request" : "Quote request"} · {enquiry.name}</h1><p>{enquiry.service} · received {enquiry.createdAt ? new Intl.DateTimeFormat("en-AU", { dateStyle: "full", timeStyle: "short", timeZone: "Australia/Melbourne" }).format(enquiry.createdAt) : "—"}</p></div><a className="button button-light" href={`mailto:${enquiry.email}?subject=${encodeURIComponent(`Your ${enquiry.service} enquiry with Signsnwraps`)}`}>Email customer ↗</a></div>
+    <div className="admin-head"><div><h1>{enquiry.type === "booking" ? "Appointment request" : "Quote request"} · {enquiry.name}</h1><p>{enquiry.service} · received {enquiry.createdAt ? new Intl.DateTimeFormat("en-AU", { dateStyle: "full", timeStyle: "short", timeZone: "Australia/Melbourne" }).format(enquiry.createdAt) : "—"}</p></div><a className="button button-light" href={`mailto:${enquiry.email}?subject=${encodeURIComponent(`Your ${enquiry.service} enquiry with Signsnwraps`)}`}>Email customer</a></div>
     <div className="admin-order-grid">
       <section className="admin-card">
         <h2>Request</h2>

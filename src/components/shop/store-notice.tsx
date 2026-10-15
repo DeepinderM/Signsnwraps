@@ -3,7 +3,7 @@ import { isStripeTestMode } from "@/lib/stripe";
 
 /** Shown when products can't be loaded (Firebase not configured or unreachable). */
 export function StoreUnavailable() {
-  return <div className="shop-notice"><b>The online store is temporarily unavailable.</b><p>Please try again shortly, or contact the studio to order.</p><Link className="text-link" href="/wraps/book">Book an In-Store Consultation ↗</Link></div>;
+  return <div className="shop-notice"><b>The online store is temporarily unavailable.</b><p>Please try again shortly, or contact the studio to order.</p><Link className="text-link" href="/wraps/book">Book an In-Store Consultation</Link></div>;
 }
 
 /** Makes Stripe test mode obvious so nobody mistakes a test order for a real one. */

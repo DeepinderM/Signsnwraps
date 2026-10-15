@@ -31,7 +31,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
         <td>{formatAud(product.priceCents)}</td>
         <td>{product.stock ?? "Made to order"}</td>
         <td><form action={setProductActive}><input type="hidden" name="id" value={product.id} /><input type="hidden" name="active" value={product.active ? "0" : "1"} /><button type="submit" className={`admin-status ${product.active ? "is-live" : ""}`} title={product.active ? "Click to hide from the shop" : "Click to show in the shop"}>{product.active ? "Live" : "Hidden"}</button></form></td>
-        <td className="admin-row-actions"><Link href={`/admin/products/${product.id}`}>Edit</Link>{product.active && <Link href={productHref(product)} target="_blank">View ↗</Link>}</td>
+        <td className="admin-row-actions"><Link href={`/admin/products/${product.id}`}>Edit</Link>{product.active && <Link href={productHref(product)} target="_blank">View</Link>}</td>
       </tr>)}
     </tbody></table></div>}
   </>;

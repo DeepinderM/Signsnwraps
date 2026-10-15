@@ -24,7 +24,7 @@ export default async function ShopPage({ searchParams }: Props) {
     </div></section>
     <section className="section shop-section"><div className="container"><TestModeBanner/>
       {products === null ? <StoreUnavailable/> : products.length === 0 ? <div className="shop-notice"><b>No products here yet.</b><p>Check back soon, or ask the studio about this range.</p></div> : <ProductGrid products={products}/>}
-      {active === "vehicle-kit" && <p className="product-caveat">Looking for your vehicle? <Link href="/wraps/kits">Use the kit finder ↗</Link></p>}
+      {active === "vehicle-kit" && <p className="product-caveat">Looking for your vehicle? <Link href="/wraps/kits">Use the kit finder</Link></p>}
     </div></section>
     <FaqSection page="shop"/>
     <ConsultationCTA title="Prefer a professional fit?" text="Book the Laverton North studio to have our team fit your kit."/>

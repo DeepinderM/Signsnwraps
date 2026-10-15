@@ -21,7 +21,7 @@ export function FleetPage({ side }: { side: FleetSide }) {
         <span className="eyebrow">{content.eyebrow}</span>
         <h1 className="heading-xl">{content.title[0]}<br/><em>{content.title[1]}</em></h1>
         <p className="body-lg">{content.intro}</p>
-        <div className="fleet-actions"><a className="button button-orange" href="#fleet-book">Book a Fleet Consultation ↗</a><a className="button fleet-outline" href="#fleet-quote">Get a Fleet Quote ↗</a></div>
+        <div className="fleet-actions"><a className="button button-orange" href="#fleet-book">Book a Fleet Consultation</a><a className="button fleet-outline" href="#fleet-quote">Get a Fleet Quote</a></div>
       </div>
       <div className="sign-detail-image image-frame"><Image src={heroImages[side]} alt={content.imageAlt} fill priority sizes="(max-width: 700px) 100vw, 50vw"/></div>
     </div></section>

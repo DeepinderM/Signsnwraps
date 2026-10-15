@@ -22,7 +22,7 @@ export function AddToCart({ product, showQty = false, compact = false }: Props) 
   return <div className={`shop-add${compact ? " shop-add-compact" : ""}`}>
     {showQty && <label className="shop-qty"><span>Qty</span><select value={qty} onChange={(event) => setQty(Number(event.target.value))}>{Array.from({ length: max }, (_, index) => index + 1).map((value) => <option key={value} value={value}>{value}</option>)}</select></label>}
     <button className="button button-orange" type="button" onClick={add}>Add to cart</button>
-    {state === "added" && <Link className="shop-added" href="/wraps/cart" role="status">Added ✓ View cart ↗</Link>}
+    {state === "added" && <Link className="shop-added" href="/wraps/cart" role="status">Added ✓ View cart</Link>}
     {state === "full" && <span className="shop-added" role="status">Your cart is full.</span>}
   </div>;
 }

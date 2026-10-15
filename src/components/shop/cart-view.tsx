@@ -48,7 +48,7 @@ export function CartView() {
     }
   }
 
-  if (!items.length) return <div className="cart-empty"><h2>Your cart is empty.</h2><p>Find a pre-cut kit for your vehicle, or browse film, protection pieces and tools.</p><div className="cart-actions"><Link className="button button-orange" href="/wraps/shop">Shop all products ↗</Link><Link className="button cart-outline" href="/wraps/kits">Find a vehicle kit ↗</Link></div></div>;
+  if (!items.length) return <div className="cart-empty"><h2>Your cart is empty.</h2><p>Find a pre-cut kit for your vehicle, or browse film, protection pieces and tools.</p><div className="cart-actions"><Link className="button button-orange" href="/wraps/shop">Shop all products</Link><Link className="button cart-outline" href="/wraps/kits">Find a vehicle kit</Link></div></div>;
 
   return <div className="cart-layout">
     <ul className="cart-lines" aria-label="Items in your cart">{items.map((item) => <li key={item.productId}>
@@ -65,7 +65,7 @@ export function CartView() {
         <label><input type="radio" name="delivery" checked={delivery === "pickup"} onChange={() => setDelivery("pickup")} /><span><b>Click & collect · Laverton North</b><small>Free · we'll email when it's ready</small></span></label>
       </fieldset>
       <dl><div><dt>Subtotal</dt><dd>{formatAud(subtotal)}</dd></div><div><dt>{delivery === "pickup" ? "Pickup" : "Shipping"}</dt><dd>{shipping ? formatAud(shipping) : "Free"}</dd></div><div className="cart-total"><dt>Total <small>incl. GST</small></dt><dd>{formatAud(subtotal + shipping)}</dd></div></dl>
-      <button className="button button-orange cart-checkout" type="button" onClick={checkout} disabled={status === "loading" || blocked}>{status === "loading" ? "Opening secure checkout…" : "Checkout securely ↗"}</button>
+      <button className="button button-orange cart-checkout" type="button" onClick={checkout} disabled={status === "loading" || blocked}>{status === "loading" ? "Opening secure checkout…" : "Checkout securely"}</button>
       {blocked && <p className="cart-error" role="alert">Remove or adjust unavailable items to continue.</p>}
       {error && <p className="cart-error" role="alert">{error}</p>}
       <p className="cart-fine"><Link href="/account/login?next=/wraps/cart">Sign in</Link> to track this order in your account, or check out as a guest. Payments are processed by Stripe. Please confirm your vehicle year, trim and body variant before ordering a vehicle kit. See <Link href="/shipping-returns">shipping & returns</Link>.</p>

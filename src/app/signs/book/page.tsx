@@ -23,7 +23,7 @@ export default function SignsBookingPage() {
             <p>Tell us a little about your signage or print project. We’ll help you work out what to bring and what comes next.</p>
           </div>
           <div className="book-panel"><BookingWizard/></div>
-          <p className="visit-link">Looking for studio details? <Link href="/locations/laverton-north">Visit Laverton North ↗</Link></p>
+          <p className="visit-link">Looking for studio details? <Link href="/locations/laverton-north">Visit Laverton North</Link></p>
         </div>
       </section>
       <style>{`
