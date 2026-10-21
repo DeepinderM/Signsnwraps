@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { updateTag } from "next/cache";
 import { FieldValue } from "firebase-admin/firestore";
 import { getDownloadURL } from "firebase-admin/storage";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requireSuperAdmin } from "@/lib/admin-auth";
 import { bucket, db } from "@/lib/firebase/admin";
 import { PRODUCTS_TAG, productsCollection } from "@/lib/shop/products";
 import { buildSampleCatalog } from "@/lib/shop/sample-catalog";
@@ -24,7 +24,7 @@ async function uploadImage(productId: string, file: File) {
 }
 
 export async function saveProduct(_previous: ProductFormState, form: FormData): Promise<ProductFormState> {
-  await requireAdmin();
+  await requireSuperAdmin();
   const isNew = form.get("isNew") === "1";
   const id = isNew ? slugify(text(form, "id") || text(form, "name")) : text(form, "id");
   const name = text(form, "name");
@@ -73,7 +73,7 @@ export async function saveProduct(_previous: ProductFormState, form: FormData): 
 }
 
 export async function deleteProduct(form: FormData) {
-  await requireAdmin();
+  await requireSuperAdmin();
   const id = text(form, "id");
   if (!/^[a-z0-9-]{1,120}$/.test(id)) return;
   await productsCollection().doc(id).delete();
@@ -82,7 +82,7 @@ export async function deleteProduct(form: FormData) {
 }
 
 export async function setProductActive(form: FormData) {
-  await requireAdmin();
+  await requireSuperAdmin();
   const id = text(form, "id");
   if (!/^[a-z0-9-]{1,120}$/.test(id)) return;
   await productsCollection().doc(id).update({ active: form.get("active") === "1", updatedAt: FieldValue.serverTimestamp() });
@@ -91,7 +91,7 @@ export async function setProductActive(form: FormData) {
 
 /** Adds the placeholder catalogue. Never overwrites a product that already exists. */
 export async function loadSampleCatalog() {
-  await requireAdmin();
+  await requireSuperAdmin();
   const products = buildSampleCatalog();
   const existing = new Set((await productsCollection().select().get()).docs.map((doc) => doc.id));
   const writer = db().bulkWriter();

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { fulfilCheckoutSession } from "@/lib/shop/orders";
+import { recordInvoicePayment } from "@/lib/billing-payments";
 
 // Stripe → Dashboard → Developers → Webhooks: send checkout.session.completed and
 // checkout.session.async_payment_succeeded to https://<site>/api/stripe/webhook.
@@ -20,7 +21,9 @@ export async function POST(request: Request) {
 
   if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
     try {
-      await fulfilCheckoutSession(event.data.object.id);
+      // Invoice payments carry metadata.billingId; everything else is a shop order.
+      if (event.data.object.metadata?.billingId) await recordInvoicePayment(event.data.object.id);
+      else await fulfilCheckoutSession(event.data.object.id);
     } catch (error) {
       console.error("Order fulfilment failed", event.data.object.id, error);
       return NextResponse.json({ error: "Fulfilment failed; Stripe will retry." }, { status: 500 });

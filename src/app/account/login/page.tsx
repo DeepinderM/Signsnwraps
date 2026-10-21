@@ -14,7 +14,7 @@ export default async function AccountLoginPage({ searchParams }: { searchParams:
   const next = safeNext((await searchParams).next);
   if (await getSessionUser()) redirect(next);
   return <section className="account-page"><div className="container account-login">
-    <div><span className="eyebrow">MY ACCOUNT</span><h1 className="heading-xl">Sign in.</h1><p className="body-lg">See your orders, keep your details handy and check out faster. No account? Create one in a few seconds, or <Link href="/wraps/shop">keep shopping as a guest</Link>.</p></div>
+    <div><span className="eyebrow">MY ACCOUNT</span><h1 className="heading-xl">Sign in.</h1><p className="body-lg">Sign in to see prices, order online and track your orders. No account? Create one free in a few seconds. Or <Link href="/wraps/shop">keep browsing</Link>.</p></div>
     <AuthForm next={next} />
   </div></section>;
 }

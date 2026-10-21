@@ -1,6 +1,6 @@
 # SIGNSNWRAPS website
 
-Premium, mobile-first website for SIGNSNWRAPS, built with Next.js App Router, TypeScript, Tailwind CSS and locally bundled Inter Variable. The brand book (`docs/Signsnwraps Brand Book.pdf`) sets the palette: Electric Blue `#03AAFA`, black `#000000` and white, with a darker `#0275B0` used only for small blue text on light backgrounds. Buttons use black text on blue for legibility. Site navigation now separates two experiences under the shared brand: `/signs` for signs and print, `/wraps` for vehicle wraps, studio PPF and DIY kit discovery. The first configured location is Laverton North; content is data-driven for expansion.
+Premium, mobile-first website for SIGNSNWRAPS, built with Next.js App Router, TypeScript, Tailwind CSS and locally bundled Inter Variable. The current brand book (`docs/Signsnwraps Brand Book new theme.html`) sets a light theme: Ice Blue `#E3ECF6` and Mist Grey `#E5E5E6` backgrounds, white cards, Ink Navy `#13233A` text and Electric Blue `#03AAFA` for CTAs and highlights (`src/app/theme-light.css`). Site navigation now separates two experiences under the shared brand: `/signs` for signs and print, `/wraps` for vehicle wraps, studio PPF and DIY kit discovery. The first configured location is Laverton North; content is data-driven for expansion.
 
 ## Development
 

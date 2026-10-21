@@ -1,11 +1,13 @@
 "use server";
 
 import { getStorefrontProducts } from "@/lib/shop/products";
+import { canSeePrices } from "@/lib/shop/price-access";
 
 export type CartProductInfo = { name: string; priceCents: number; imageUrl: string | null; stock: number | null };
 
 /** Current name, price and stock for the products in a browser cart. null = store unreachable. */
 export async function refreshCartProducts(ids: string[]): Promise<Record<string, CartProductInfo> | null> {
+  if (!await canSeePrices()) return null;
   const wanted = new Set(ids.slice(0, 50));
   const products = await getStorefrontProducts();
   if (!products) return null;

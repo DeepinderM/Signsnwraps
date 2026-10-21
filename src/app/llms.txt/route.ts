@@ -22,8 +22,8 @@ ${link("Fleet signage", "/signs/fleet", "vehicle lettering, graphics, reflective
 ## Wraps & paint protection
 ${link("Vehicle wraps", "/wraps/vehicle-wraps", "colour change and commercial wraps for cars, utes, vans and trucks")}
 ${link("Fleet wraps", "/wraps/fleet", "fleet livery design, full and partial commercial wraps, fleet PPF; book or request a quote online")}
-${link("Paint protection film (PPF)", "/wraps/ppf", "professional PPF fitting in the Laverton North studio")}
-${link("Pre-cut PPF kits", "/wraps/kits", "DIY paint protection film kits by vehicle make, model and year")}
+${link("Colour PPF", "/wraps/ppf", "colour paint protection film (gloss, satin, matte) fitted in the studio: changes the colour and protects the paint")}
+${link("Clear PPF kits", "/wraps/kits", "pre-cut clear paint protection film DIY kits by vehicle make, model and year")}
 ${link("Online shop", "/wraps/shop", "PPF kits, colour PPF, universal protection pieces and tools; AUD incl. GST, $15 AU shipping, free over $250, free click and collect")}
 ${link("How to install a PPF kit", "/wraps/how-to-install", "step-by-step DIY installation guide")}
 ${link("Wraps & PPF FAQs", "/wraps/faq", "answers about kits, fitting options, film and ordering")}

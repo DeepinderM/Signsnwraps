@@ -1,0 +1,149 @@
+/*
+ * Spatial UI layer — minimalist, layered surfaces on a soft canvas.
+ * Loaded after globals.css; selectors are prefixed with `body` so they win over component <style> blocks.
+ * To revert to the previous look, remove the `import "./spatial.css"` line in src/app/layout.tsx.
+ */
+:root{
+  --canvas:#f5f5f7;--surface:#ffffff;--surface-line:rgba(0,0,0,.07);--ink-soft:#5f5f66;
+  --r-xl:32px;--r-lg:24px;--r-md:18px;--r-sm:12px;
+  --inset:clamp(8px,1.2vw,16px);
+  --shadow-1:0 1px 2px rgba(0,0,0,.04),0 4px 14px -6px rgba(0,0,0,.08);
+  --shadow-2:0 2px 6px rgba(0,0,0,.04),0 18px 40px -18px rgba(0,0,0,.18);
+  --shadow-3:0 30px 70px -32px rgba(0,0,0,.45);
+  --glass:rgba(10,10,12,.88);
+}
+
+/* ---------- Canvas & rhythm ---------- */
+body{background:var(--canvas)}
+body .section{padding:clamp(56px,7vw,104px) 0}
+body .heading-xl{letter-spacing:-.055em}
+body .heading-lg{letter-spacing:-.045em}
+body .body-lg{line-height:1.7}
+/* Light sections melt into the canvas; surfaces (cards) carry the contrast. */
+body main>section:not(.image-frame):not(.dark):not(.chooser):not(.signs-hero):not(.wraps-hero):not(.catalog-hero):not(.collection-hero):not(.sign-detail-hero):not(.wrap-service-hero):not(.location-hero):not(.quote-hero):not(.contact-hero):not(.booking-intro):not(.signs-book):not(.trade-hero):not(.detail-hero):not(.colour-strip):not(.sign-brand-story):not(.signs-fleet-band):not(.fleet-process-section):not(.consult-cta):not(.cart-page):not(.about-hero):not(.sign-industries){background:transparent!important}
+body .signs-book-page{background:transparent}
+body .signs-book-form{background:transparent}
+
+/* ---------- Floating dark panels ---------- */
+body .chooser,body .signs-hero,body .wraps-hero,body .catalog-hero,body .collection-hero,body .sign-detail-hero,body .wrap-service-hero,
+body .location-hero,body .quote-hero,body .contact-hero,body .booking-intro,body .signs-book,body .trade-hero,body .detail-hero,
+body .colour-strip,body .sign-brand-story,body .signs-fleet-band,body .fleet-process-section,body .consult-cta.dark,body main>section.dark,body .cart-page,body .about-hero,body .sign-industries{
+  margin:var(--inset);border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--shadow-3);border-top:0
+}
+body .chooser{margin-top:var(--inset)}
+body .chooser-halves{border-radius:0 0 var(--r-xl) var(--r-xl);overflow:hidden}
+body .wrap-service-image{border-radius:0}
+
+/* ---------- Floating glass header ---------- */
+body .site-header{top:var(--inset);margin:var(--inset) var(--inset) 0;border-radius:22px;background:transparent;border-bottom:0;isolation:isolate;box-shadow:0 18px 40px -24px rgba(0,0,0,.55)}
+/* Glass lives on a pseudo-element so the header itself doesn't become a containing block for the fixed mobile menu. */
+body .site-header::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:var(--glass);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border:1px solid rgba(255,255,255,.08)}
+body .desktop-nav{background:transparent;border-top:1px solid rgba(255,255,255,.08)}
+body .side-switch{background:transparent;border-radius:14px}
+body .side-switch>a{border-radius:14px;border-color:rgba(255,255,255,.24);background:rgba(255,255,255,.08)}
+body .side-switch>a.active{background:#fff;border-color:#fff}
+body .menu-toggle{border-radius:14px;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14)}
+body .header-book{border-radius:999px}
+body .mobile-menu{border-radius:var(--r-lg) 0 0 var(--r-lg);border-left:0;box-shadow:-30px 0 60px -20px rgba(0,0,0,.5)}
+body .menu-close,body .mobile-menu-account a{border-radius:14px}
+body .menu-backdrop{-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+
+/* ---------- Breadcrumbs: quiet text on the canvas ---------- */
+body .crumbs{background:transparent;border-bottom:0}
+body .crumbs ol{padding:14px 0 2px;color:#8a8a92}
+body .crumbs a{color:var(--ink-soft)}body .crumbs a:hover{color:var(--electric-blue-ink)}
+body .crumbs [aria-current]{color:#111}
+body .crumbs li+li::before{color:#b4b4bb}
+
+/* ---------- Buttons ---------- */
+body .button{border-radius:999px;min-height:50px;padding:0 26px;gap:12px;letter-spacing:.01em;box-shadow:var(--shadow-1);transition:transform .2s ease,box-shadow .2s ease,background .2s,color .2s,border-color .2s}
+body .button:hover{transform:translateY(-1px);box-shadow:var(--shadow-2)}
+body .button-orange{box-shadow:0 10px 26px -12px rgba(3,170,250,.85)}
+body .button-orange:hover{box-shadow:0 14px 30px -12px rgba(3,170,250,.9)}
+body .cart-outline-dark{background:#fff;border-color:var(--surface-line)}
+body .text-link{border-bottom:0;padding-bottom:0;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:6px}
+
+/* ---------- Surfaces (cards, tiles, forms) ---------- */
+body .card,body .shop-card,body .kit-categories>a,body .three-path-grid article,body .wrap-option-grid article,body .kit-detail-grid article,
+body .installer-benefits article,body .fleet-types article,body .home-pillars article,body .partner-card,body .account-card,body .auth-card,
+body .booking-card,body .quote-form,body .quote-note,body .service-card,body .coverage-card,body .path-card,body .advice-grid article,
+body .industry-card,body .capability-grid article,body .shop-notice,body .cart-summary,body .wrap-book-layout aside,
+body .coverage-list article,body .guide-list article,body .form-success,body .book-panel,body .fleet-form,body .faq-section .catalog-faq details,
+body .admin-login{
+  background:var(--surface);border:1px solid var(--surface-line);border-radius:var(--r-lg);box-shadow:var(--shadow-1)
+}
+body .partner-card{border-top:1px solid var(--surface-line)}
+body .kit-categories>a,body .shop-card,body .three-path-grid article,body .fleet-types article,body .home-pillars article,body .coverage-card,body .path-card,body .service-card{transition:transform .25s ease,box-shadow .25s ease,background .2s,color .2s}
+body .kit-categories>a:hover,body .shop-card:hover,body .fleet-types article:hover,body .home-pillars article:hover,body .coverage-card:hover,body .path-card:hover,body .service-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-2)}
+body .three-path-grid article:nth-child(2){background:#0b0b0d;border-color:#0b0b0d}
+/* Cards that are dark by design keep their dark surface */
+body .value-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-lg);padding:22px}
+body .path-card.path-featured,body .coverage-card:hover{background:#0b0b0d;border-color:#0b0b0d;color:#fff}
+body .shop-card{padding:14px}
+body .shop-image,body .kit-product-image,body .cart-thumb{border-radius:var(--r-md);overflow:hidden}
+body .image-frame{border-radius:var(--r-lg)}
+body .sign-detail-image,body .signs-hero-image,body .wraps-hero-media,body .about-image{border-radius:var(--r-lg);overflow:hidden}
+body .wrap-option-grid,body .kit-categories,body .three-path-grid,body .fleet-types,body .home-pillars,body .shop-grid,body .kit-detail-grid,body .installer-benefits{gap:16px}
+
+/* Grids that drew divider lines with a coloured background become spaced tiles */
+body .coverage-grid,body .industry-grid{background:transparent!important;border:0!important;gap:16px}
+body .industry-card{border-radius:var(--r-lg)}
+/* Light, quiet placeholder for products without a photo */
+body .shop-image{background:#eceef2}body .shop-image>span{color:#4a4a52;border-bottom-color:var(--electric-blue)}
+body .kit-product-image{background:#eceef2}
+
+/* Lists become stacks of quiet tiles */
+body .coverage-list{border-top:0;gap:10px}
+body .coverage-list article{padding:18px 22px;border-bottom:1px solid var(--surface-line)}
+body .guide-list{border-top:0;gap:10px}
+body .guide-list article{padding:20px 22px;border-bottom:1px solid var(--surface-line)}
+body .sign-offers{border-top:0;gap:8px}
+body .sign-offers li{background:var(--surface);border:1px solid var(--surface-line);border-radius:var(--r-sm);padding:14px 16px}
+body .about-facts-list{border-top:0;gap:8px}
+body .about-facts-list div{background:var(--surface);border:1px solid var(--surface-line);border-radius:var(--r-sm);padding:14px 16px}
+
+/* FAQ: each question is its own floating tile */
+body .faq-section .catalog-faq{display:grid;gap:10px}
+body .faq-section .catalog-faq details{padding:18px 22px;border-top:1px solid var(--surface-line)}
+body .faq-section .catalog-faq details:last-child{border-bottom:1px solid var(--surface-line)}
+body .catalog-faq details p{margin-bottom:2px}
+body .faq-answer-lead{border-left:0;padding:18px 20px;background:var(--surface);border-radius:var(--r-md);box-shadow:var(--shadow-1)}
+
+/* Forms */
+body .field input,body .field select,body .field textarea,body .shop-qty select,body .admin-filters input,body .admin-filters select{border-radius:var(--r-sm);border-color:#e1e1e6;background:#fff}
+body .field input:focus,body .field select:focus,body .field textarea:focus{border-color:var(--electric-blue);box-shadow:0 0 0 4px rgba(3,170,250,.16)}
+body .quote-checks label,body .cart-delivery label,body .auth-google{border-radius:var(--r-sm)}
+body .booking-note{border-radius:var(--r-sm)}
+body .wizard-progress{border-radius:2px;overflow:hidden}
+
+/* Shop + cart */
+body .shop-filters a{border-radius:999px}
+body .shop-test-banner,body .account-notice,body .admin-error,body .admin-ok{border-radius:var(--r-sm)}
+body .cart-lines li{border-bottom-color:rgba(255,255,255,.12)}
+body .cart-line-qty{border-radius:999px;overflow:hidden}
+body .cart-summary{border:0}
+
+/* Partner strip + tiles */
+body .partners-strip{border-bottom:0}
+body .colour-catalog article{border-radius:var(--r-md);border-color:rgba(255,255,255,.14)}
+body .colour-catalog span{border-radius:10px}
+body .compare-table-wrap{border-radius:var(--r-lg);background:#fff;box-shadow:var(--shadow-1)}
+body .compare-table thead th:first-child{border-top-left-radius:var(--r-lg)}
+body .compare-table thead th:last-child{border-top-right-radius:var(--r-lg)}
+body .installer-map{border-radius:var(--r-lg)}
+body .fleet-tabs a{border-radius:var(--r-md) var(--r-md) 0 0}
+body .fleet-form{border-radius:0 var(--r-lg) var(--r-lg) var(--r-lg)}
+body .fleet-form .booking-card,body .fleet-form .quote-form{box-shadow:none;border:0}
+body .account-status,body .admin-status{border-radius:999px}
+
+/* ---------- Footer: a floating dark panel ---------- */
+body .footer{margin:var(--inset);border-radius:var(--r-xl);box-shadow:var(--shadow-3)}
+
+@media(max-width:760px){
+  body .site-header{border-radius:18px}
+  body .chooser,body .signs-hero,body .wraps-hero,body .catalog-hero,body .collection-hero,body .sign-detail-hero,body .wrap-service-hero,
+  body .location-hero,body .quote-hero,body .contact-hero,body .booking-intro,body .signs-book,body .trade-hero,body .detail-hero,
+  body .colour-strip,body .sign-brand-story,body .signs-fleet-band,body .fleet-process-section,body .consult-cta.dark,body main>section.dark,body .cart-page,body .about-hero,body .sign-industries,body .footer{border-radius:var(--r-lg)}
+  body .fleet-form{border-radius:0 0 var(--r-lg) var(--r-lg)}
+}
+@media(prefers-reduced-motion:reduce){body .button,body .kit-categories>a,body .shop-card{transition:none}}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { pageMetadata, SITE } from "@/lib/seo";
 import { HomeChooser } from "@/components/home/home-chooser";
 import { FaqSection } from "@/components/seo/faq-section";
+import { BrandScrollStory } from "@/components/home/brand-scroll-story";
 
 export const metadata: Metadata = pageMetadata({ title: "Signsnwraps | Signage, Vehicle Wraps & PPF in Melbourne", description: "Signage, printing, vehicle wraps, fleet branding and paint protection film from one Laverton North studio in Melbourne. Book a consultation or shop PPF kits.", path: "/", absoluteTitle: true });
 
@@ -10,12 +11,13 @@ const pillars = [
   { title: "Signs", text: "Shopfront, building, illuminated and neon signs, designed, made and installed.", links: [["Commercial signage", "/signs/signage"], ["Shopfronts", "/signs/shopfronts"], ["Neon signs", "/signs/neon"]] },
   { title: "Print", text: "Banners, event displays, stickers and wall, window and floor graphics.", links: [["Banners & printing", "/signs/printing"], ["Get a print quote", "/quote"]] },
   { title: "Wraps", text: "Colour change and commercial wraps, fleet livery and fleet signage.", links: [["Vehicle wraps", "/wraps/vehicle-wraps"], ["Fleet wraps", "/wraps/fleet"], ["Fleet signage", "/signs/fleet"]] },
-  { title: "Protect", text: "Paint protection film fitted in our studio, or pre-cut PPF kits to fit yourself.", links: [["Paint protection film", "/wraps/ppf"], ["PPF kits by vehicle", "/wraps/kits"], ["Shop online", "/wraps/shop"]] },
+  { title: "Protect", text: "Colour PPF fitted in our studio, or pre-cut clear PPF kits to fit yourself.", links: [["Colour PPF", "/wraps/ppf"], ["Clear PPF kits by vehicle", "/wraps/kits"], ["Shop online", "/wraps/shop"]] },
 ];
 
 export default function HomePage() {
   return <>
     <HomeChooser />
+    <BrandScrollStory />
     <section className="section home-about"><div className="container">
       <div className="home-about-lead"><span className="eyebrow">WHO WE ARE</span><h2 className="heading-lg">One studio for signs, print, wraps and protection.</h2><p className="body-lg">{SITE.summary}</p></div>
       <div className="home-pillars">{pillars.map((pillar, index) => <article key={pillar.title}><span>0{index + 1}</span><h3>{pillar.title}</h3><p>{pillar.text}</p><ul>{pillar.links.map(([label, href]) => <li key={href}><Link href={href}>{label}</Link></li>)}</ul></article>)}</div>

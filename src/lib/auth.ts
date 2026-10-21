@@ -39,14 +39,14 @@ export async function requireUser(next = "/account") {
 }
 
 /** Verifies a fresh ID token from the browser and sets the session cookie. Returns the user or an error message. */
-export async function startSession(idToken: unknown, allow?: (user: SessionUser) => string | null): Promise<{ user: SessionUser } | { error: string; status: number }> {
+export async function startSession(idToken: unknown, allow?: (user: SessionUser) => string | null | Promise<string | null>): Promise<{ user: SessionUser } | { error: string; status: number }> {
   if (!isFirebaseConfigured()) return { error: "Sign-in is not available right now.", status: 503 };
   if (typeof idToken !== "string" || idToken.length > 4096) return { error: "Missing sign-in token.", status: 400 };
   try {
     const decoded = await adminAuth().verifyIdToken(idToken, true);
     if (Date.now() / 1000 - decoded.auth_time > MAX_SIGN_IN_AGE_S) return { error: "Please sign in again.", status: 401 };
     const user = toUser(decoded);
-    const denied = allow?.(user);
+    const denied = await allow?.(user);
     if (denied) return { error: denied, status: 403 };
     const session = await adminAuth().createSessionCookie(idToken, { expiresIn: SESSION_MAX_AGE_MS });
     (await cookies()).set(SESSION_COOKIE, session, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_MAX_AGE_MS / 1000 });

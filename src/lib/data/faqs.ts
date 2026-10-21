@@ -87,19 +87,20 @@ export const pageFaqs = {
     ],
   },
   ppf: {
-    title: "Paint protection film, answered.",
-    intro: "Paint protection film (PPF) is a clear or coloured urethane film applied to painted panels to protect against stone chips, scratches, bug and bird marks and minor scuffs. Signsnwraps fits PPF at its Laverton North studio and sells pre-cut PPF kits online.",
+    title: "Colour PPF, answered.",
+    intro: "Colour PPF is a coloured paint protection film that changes the colour or finish of a vehicle and protects the paint underneath from stone chips and scratches. Signsnwraps fits colour PPF in its studio; clear PPF is available as pre-cut DIY kits.",
     items: [
-      { question: "What is paint protection film?", answer: "PPF is a thin, tough, transparent or coloured urethane film that protects painted surfaces from stone chips and scratches. Many modern films have a self-healing top coat that lets light swirl marks fade with warmth." },
-      { question: "Which parts of the car should I protect with PPF?", answer: "The most common areas are the front bumper, bonnet, front guards, mirrors, headlights and door edges, because they take the most stone chips. Full-vehicle coverage protects every painted panel." },
-      { question: "PPF or ceramic coating: what's the difference?", answer: "PPF is a physical film that absorbs impacts such as stone chips. A ceramic coating is a thin liquid layer that adds gloss and makes cleaning easier but doesn't stop chips. Some owners use both." },
-      { question: "How long does PPF last?", answer: "It depends on the film, sun exposure and care. Ask us for the current manufacturer specifications and warranty for the film used on your vehicle." },
-      { question: "Can PPF be removed?", answer: "Yes. PPF can be removed and replaced, and quality films are designed to come off original factory paint cleanly when removed correctly." },
+      { question: "What is colour PPF?", answer: "Colour PPF is paint protection film with a colour or finish built in. Like clear PPF it is a tough urethane film that protects against stone chips and scratches, but it also changes how the vehicle looks, in gloss, satin or matte." },
+      { question: "Colour PPF or vinyl wrap: what's the difference?", answer: "Both change the vehicle's colour. Colour PPF is thicker and designed to absorb stone chips, and many films are self-healing. Vinyl wraps are thinner and mostly cosmetic, with the widest choice of colours and printed designs at a lower cost." },
+      { question: "Can I get clear PPF?", answer: "Yes. Clear PPF is available as pre-cut DIY kits for popular utes, 4WDs, SUVs and cars, so you can protect high-impact areas such as the bonnet, bumper, mirrors and headlights yourself." },
+      { question: "Can you do part of the car in colour PPF?", answer: "Yes. Besides a full colour change, popular options include the roof, bonnet, mirrors, pillars and trim accents." },
+      { question: "How long does colour PPF last?", answer: "It depends on the film, sun exposure and care. Ask us for the current manufacturer specifications and warranty for the film you choose." },
+      { question: "Can colour PPF be removed?", answer: "Yes. Quality colour PPF is designed to come off original factory paint cleanly when removed correctly, leaving the protected paint underneath." },
     ],
   },
   kits: {
     title: "PPF kits, answered.",
-    intro: "A pre-cut PPF kit is paint protection film cut to the shape of specific panels on a specific vehicle, so you can protect high-impact areas without cutting film on the paint. Signsnwraps sells kits for popular Australian utes, 4WDs, SUVs and cars.",
+    intro: "A pre-cut PPF kit is clear paint protection film cut to the shape of specific panels on a specific vehicle, so you can protect high-impact areas without cutting film on the paint. Signsnwraps sells kits for popular Australian utes, 4WDs, SUVs and cars.",
     items: [
       { question: "What is a pre-cut PPF kit?", answer: "Paint protection film already cut to fit particular panels of your make, model and year, such as the bonnet edge, bumper, mirrors, door cups or headlights. It removes the need to trim film on the vehicle." },
       { question: "How do I know a kit will fit my vehicle?", answer: "Choose your make, model and year in the kit finder, then check the trim and body variant. Bumpers, sensors and accessories can differ between variants. If you're unsure, ask us before ordering." },
@@ -113,6 +114,7 @@ export const pageFaqs = {
     items: [
       { question: "How much is shipping?", answer: "Standard shipping within Australia is a flat $15 per order and free on orders over $250. Click and collect from Laverton North is free." },
       { question: "How long does delivery take?", answer: "Vehicle kits are cut to order and usually dispatch within 3–5 business days. In-stock items usually dispatch within 1–2 business days, then delivery time depends on your location." },
+      { question: "Why do I need an account to see prices?", answer: "Prices are shown to account holders only. Log in or create a free account and you'll see prices for every kit, film and tool, and can order online." },
       { question: "Are prices in Australian dollars and include GST?", answer: "Yes. All prices are in AUD and include GST." },
       { question: "Can I return a PPF kit?", answer: "Unused, unopened items can be returned within 30 days. Cut-to-order vehicle kits can't be returned once the backing is removed unless faulty or not matching the vehicle they were sold for. See shipping and returns for details." },
     ],

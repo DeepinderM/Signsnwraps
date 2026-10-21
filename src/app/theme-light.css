@@ -1,0 +1,134 @@
+/*
+ * Light theme — docs/Signsnwraps Brand Book new theme.html
+ *   Ice Blue #E3ECF6  page and hero backgrounds      Mist Grey #E5E5E6  alternate sections and panels
+ *   White             cards and content              Ink Navy #13233A   headings and text (replaces black)
+ *   Electric Blue #03AAFA  CTAs (with navy text), logo, highlights — 10%
+ * Loaded after globals.css and spatial.css. Black is reserved for one-colour print.
+ * Readability: small blue text uses --electric-blue-ink (#026BA3, 4.8:1 on ice); large blue display
+ * text uses --electric-blue-display (#0284C7, 3.4:1); #03AAFA is for fills, icons and text on navy.
+ */
+:root{
+  --ice:#E3ECF6;--mist:#E5E5E6;--ink:#13233A;--ink-body:#4A5568;--ink-muted:#5A6779;
+  --charcoal:#13233A;--muted:#5A6779;--line:#d3dbe6;
+  --electric-blue-ink:#026BA3;--electric-blue-display:#0284C7;
+  --canvas:#E3ECF6;--surface-line:rgba(19,35,58,.08);--ink-soft:#4A5568;
+  --shadow-1:0 1px 2px rgba(19,35,58,.05),0 6px 16px -8px rgba(19,35,58,.12);
+  --shadow-2:0 2px 6px rgba(19,35,58,.06),0 20px 40px -20px rgba(19,35,58,.24);
+  --shadow-3:0 26px 60px -36px rgba(19,35,58,.38);
+  --glass:rgba(255,255,255,.8);
+}
+body{color:var(--ink);background:var(--ice)}
+::selection{background:var(--electric-blue);color:var(--ink)}
+body .body-lg{color:var(--ink-body)}
+body .eyebrow{color:var(--electric-blue-ink)}
+
+/* ---------- Header: frosted white glass, navy text, black + blue logo ---------- */
+body .site-header{color:var(--ink);box-shadow:0 18px 40px -26px rgba(19,35,58,.35)}
+body .site-header::before{border-color:rgba(19,35,58,.08)}
+body .desktop-nav{border-top-color:rgba(19,35,58,.08)}
+body .desktop-nav a{color:var(--ink)}body .desktop-nav a:hover{color:var(--electric-blue-ink)}
+body .icon-link{color:var(--ink)}body .icon-link:hover{color:var(--electric-blue-ink)}
+body .menu-toggle{background:#fff;border-color:rgba(19,35,58,.14)}body .menu-toggle span{background:var(--ink)}
+body .button-orange,body .header-book{color:var(--ink)}
+/* Mobile menu panel */
+body .mobile-menu{background:#fff;color:var(--ink);box-shadow:-30px 0 60px -24px rgba(19,35,58,.35)}
+body .mobile-menu-head{border-bottom-color:rgba(19,35,58,.1)}
+body .menu-close,body .mobile-menu-account a{background:var(--ice);border-color:rgba(19,35,58,.12);color:var(--ink)}
+body .mobile-menu-label{color:var(--electric-blue-ink)}
+body .mobile-menu-links a{color:var(--ink);border-bottom-color:rgba(19,35,58,.1)}body .mobile-menu-links a[aria-current=page]{color:var(--electric-blue-ink)}
+body .menu-backdrop{background:rgba(19,35,58,.35)}
+body .side-switch>a{background:var(--ice);border-color:rgba(19,35,58,.12);color:var(--ink)}
+body .side-switch small{color:var(--ink-muted)}
+body .switch-icon{background:#fff;color:var(--electric-blue-ink)}
+body .switch-go{color:var(--electric-blue-ink)}
+body .side-switch>a.active{background:var(--ink);border-color:var(--ink);color:#fff}
+body .side-switch>a.active small{color:#c9d3e0}body .side-switch>a.active .switch-icon{background:rgba(3,170,250,.18);color:var(--electric-blue)}
+
+/* ---------- Heroes: Ice Blue, navy type (brand: "ice-blue background, large photography, navy type") ---------- */
+body .chooser,body .signs-hero,body .wraps-hero,body .catalog-hero,body .collection-hero,body .sign-detail-hero,body .wrap-service-hero,
+body .location-hero,body .quote-hero,body .contact-hero,body .booking-intro,body .signs-book,body .trade-hero,body .about-hero,body .cart-page,body .signs-book-page{
+  background:var(--ice)!important;color:var(--ink);box-shadow:none;border:1px solid rgba(19,35,58,.06)
+}
+body .signs-book-page{border:0}
+/* Feature bands: Mist Grey panels */
+body .colour-strip,body .sign-brand-story,body .signs-fleet-band,body .fleet-process-section,body .consult-cta.dark,body main>section.dark,body .sign-industries{
+  background:var(--mist)!important;color:var(--ink);box-shadow:var(--shadow-3)
+}
+/* Text inside converted sections */
+:is(body .chooser-heading,body .signs-hero,body .wraps-hero,body .catalog-hero,body .collection-hero,body .sign-detail-hero,body .wrap-service-hero,body .location-hero,body .quote-hero,body .contact-hero,body .booking-intro,body .signs-book,body .trade-hero,body .about-hero,body .cart-page,body .colour-strip,body .sign-brand-story,body .signs-fleet-band,body .fleet-process-section,body .consult-cta.dark,body main>section.dark,body .sign-industries) :is(h1,h2,h3,h4,strong,b,blockquote,label,td,th,dt,dd){color:var(--ink)}
+:is(body .chooser-heading,body .signs-hero,body .wraps-hero,body .catalog-hero,body .collection-hero,body .sign-detail-hero,body .wrap-service-hero,body .location-hero,body .quote-hero,body .contact-hero,body .booking-intro,body .signs-book,body .trade-hero,body .about-hero,body .cart-page,body .colour-strip,body .sign-brand-story,body .signs-fleet-band,body .fleet-process-section,body .consult-cta.dark,body main>section.dark,body .sign-industries) :is(p,.body-lg,small,li,span:not(.eyebrow):not([class*="accent"])){color:var(--ink-body)}
+:is(body .chooser-heading,body .signs-hero,body .wraps-hero,body .catalog-hero,body .collection-hero,body .sign-detail-hero,body .wrap-service-hero,body .location-hero,body .quote-hero,body .contact-hero,body .booking-intro,body .signs-book,body .trade-hero,body .about-hero,body .cart-page,body .colour-strip,body .sign-brand-story,body .signs-fleet-band,body .fleet-process-section,body .consult-cta.dark,body main>section.dark,body .sign-industries) .eyebrow{color:var(--electric-blue-ink)!important}
+:is(body .chooser-heading,body .signs-hero,body .wraps-hero,body .catalog-hero,body .collection-hero,body .sign-detail-hero,body .wrap-service-hero,body .location-hero,body .quote-hero,body .contact-hero,body .booking-intro,body .signs-book,body .trade-hero,body .about-hero,body .cart-page,body .colour-strip,body .sign-brand-story,body .signs-fleet-band,body .fleet-process-section,body .consult-cta.dark,body main>section.dark,body .sign-industries) a:not(.button){color:var(--ink)}
+/* Large highlighted words in headings */
+body .signs-hero h1 em,body .wraps-hero-copy h1 em,body .sign-detail-grid h1 em,body .location-hero h1 em,body .about-hero h1 em,body h1 .accent,body h2 .accent{color:var(--electric-blue-display)!important}
+/* Outline buttons: navy border and text */
+body .signs-outline,body .service-outline,body .fleet-outline,body .cart-outline,body .sign-outline,body .hero-actions .hero-secondary,body .button-light{background:transparent;border-color:var(--ink);color:var(--ink)}
+body .signs-outline:hover,body .service-outline:hover,body .fleet-outline:hover,body .cart-outline:hover,body .sign-outline:hover,body .hero-actions .hero-secondary:hover,body .button-light:hover{background:var(--ink);border-color:var(--ink);color:#fff}
+body .text-link{color:inherit}
+
+/* Home chooser: heading area on ice; photo halves keep their dark overlay (photo overlay is allowed) */
+body .chooser-heading h1{color:var(--ink)}body .chooser-heading p{color:var(--ink-body)}
+body .chooser-halves *{color:#fff}
+body .chooser-halves .chooser-content small{color:var(--electric-blue)}
+
+/* Dark accent cards become Ink Navy */
+body .three-path-grid article:nth-child(2),body .path-card.path-featured,body .coverage-card:hover,body .kit-categories>a:hover,body .service-entry-grid>a:hover,body .explore-card.is-active{background:var(--ink)!important;border-color:var(--ink)!important;color:#fff}
+:is(body .three-path-grid article:nth-child(2),body .path-card.path-featured,body .coverage-card:hover,body .kit-categories>a:hover,body .explore-card.is-active) :is(h2,h3,strong,p,small,b,a:not(.button)){color:#fff}
+body .three-path-grid article:nth-child(2) span,body .path-card.path-featured span,body .explore-card.is-active .explore-cta{color:var(--electric-blue)}
+body .explore-card.is-active small{color:#c9d3e0}
+body .installer-map{background-color:var(--ink)}
+body .compare-table thead th{background:var(--ink)}
+body .admin-nav{background:var(--ink)}
+
+/* Cart (was dark) */
+body .cart-lines{border-top-color:rgba(19,35,58,.12)}body .cart-lines li{border-bottom-color:rgba(19,35,58,.12)}
+body .cart-line-main b,body .cart-line-total{color:var(--ink)}body .cart-line-main span{color:var(--ink-muted)}
+body .cart-line-qty{border-color:rgba(19,35,58,.2);background:#fff}body .cart-line-qty button{color:var(--ink)}
+body .cart-remove{color:var(--ink-muted)}body .cart-remove:hover{color:var(--ink)}
+body .cart-thumb{background:#fff}body .cart-thumb span{color:var(--electric-blue-ink)}
+body .cart-summary{box-shadow:var(--shadow-2)}
+body .cart-empty p{color:var(--ink-body)}
+
+/* Brand story list + philosophy box on mist */
+body .practice-we{color:var(--ink)}body .practice-word{color:var(--electric-blue-display)}
+body .sign-brand-story-practice li small{color:var(--ink-muted)}
+body .sign-brand-philosophy{background:#fff;border-left-color:var(--electric-blue)}
+body .sign-brand-philosophy>span{color:var(--ink-muted)}
+
+/* Colour swatch tiles inside the (now light) colour hero */
+body .colour-catalog article{background:#fff;border-color:rgba(19,35,58,.1)}
+body .colour-catalog span{border-color:rgba(19,35,58,.15)}
+
+/* Shop filters inside the light hero */
+body .shop-filters a{border-color:rgba(19,35,58,.25);color:var(--ink)}body .shop-filters a:hover{border-color:var(--ink)}
+body .shop-filters a[aria-current=page]{background:var(--ink);border-color:var(--ink);color:#fff;box-shadow:inset 0 -3px 0 var(--electric-blue)}
+
+/* Fleet process steps on mist */
+body .fleet-process{border-top-color:rgba(19,35,58,.12)}body .fleet-process span{color:var(--electric-blue-ink)}
+
+/* Industries chips on mist */
+body .industry-chips a{color:var(--ink);border-color:rgba(19,35,58,.18)}
+
+/* ---------- Footer: Ink Navy panel with the reverse (white + blue) logo ---------- */
+body .footer{background:var(--ink)!important;color:#fff}
+
+/* Cards: navy text */
+body .card,body .shop-card,body .kit-categories>a,body .wrap-option-grid article,body .fleet-types article,body .home-pillars article,body .partner-card,body .account-card,body .auth-card,body .service-card,body .coverage-card,body .path-card{color:var(--ink)}
+
+/* Fixes from the readability scan */
+body .signs-trust i{color:var(--electric-blue-ink)}
+body .wizard-count i{color:var(--ink-muted)}
+body .finder-number{color:var(--ink)!important}
+body .shop-filters a[aria-current=page]{color:#fff!important}
+body .button-light,body .trade-outline{background:transparent!important;border-color:var(--ink)!important;color:var(--ink)!important}
+body .button-light:hover,body .trade-outline:hover{background:var(--ink)!important;color:#fff!important}
+/* Elements whose own colour must win over the generic converted-section text rule */
+body .sign-brand-story .practice-line .practice-we{color:var(--ink)!important}
+body .sign-brand-story .practice-line .practice-word{color:var(--electric-blue-display)!important}
+body .sign-brand-story .sign-brand-philosophy p{color:var(--ink)!important}
+body .fleet-process-section .fleet-process span{color:var(--electric-blue-ink)!important}
+/* Navy replaces black for on-screen text (brand book: black only for one-colour print) */
+body main :is(h1,h2,h3,h4){color:var(--ink)}
+body .explore-card{color:var(--ink)}
+/* Photo heroes with a dark overlay keep light text (brand: photo overlays) */
+body main .detail-hero :is(h1,h2,p){color:#fff}

@@ -5,7 +5,7 @@ import { SignsFooterPartners } from "@/components/sections/proud-partners";
 
 const columns = [
   { title: "Signs", links: [["Signage", "/signs/signage"], ["Shopfronts", "/signs/shopfronts"], ["Printing", "/signs/printing"], ["Neon", "/signs/neon"], ["Fleet signage", "/signs/fleet"], ["Projects", "/signs/projects"]] },
-  { title: "Wraps", links: [["Vehicle wraps", "/wraps/vehicle-wraps"], ["Studio PPF", "/wraps/ppf"], ["DIY PPF kits", "/wraps/kits"], ["Compare fitting", "/wraps/compare"], ["Install guides", "/wraps/how-to-install"], ["Find an installer", "/wraps/installers"], ["Fleet wraps", "/wraps/fleet"], ["Trade kits", "/trade"]] },
+  { title: "Wraps", links: [["Vehicle wraps", "/wraps/vehicle-wraps"], ["Colour PPF", "/wraps/ppf"], ["Clear PPF kits", "/wraps/kits"], ["Compare fitting", "/wraps/compare"], ["Install guides", "/wraps/how-to-install"], ["Find an installer", "/wraps/installers"], ["Become an installer", "/wraps/installers/join"], ["Fleet wraps", "/wraps/fleet"], ["Trade kits", "/trade"]] },
   { title: "Company", links: [["About", "/about"], ["Contact", "/contact"], ["Laverton North studio", "/locations/laverton-north"], ["Book a consultation", "/book"], ["FAQs", "/wraps/faq"], ["Shipping & returns", "/shipping-returns"]] },
 ];
 

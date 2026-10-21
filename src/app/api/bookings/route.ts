@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { createBooking } from "@/lib/services/booking";
 import { asText, formAttribution, isEmail, isShortText } from "@/lib/validation";
-import { enquiryServices, locations } from "@/lib/data/content";
+import { enquiryServices, regionLabel } from "@/lib/data/content";
+import { uploadsFromForm } from "@/lib/services/uploads";
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_FILES, isAllowedUpload } from "@/lib/uploads";
 
 export async function POST(request: Request) {
   const contentLength = Number(request.headers.get("content-length") ?? 0);
@@ -16,12 +18,14 @@ export async function POST(request: Request) {
   const parsedDate = new Date(Date.UTC(year, month - 1, day));
   const melbourneToday = new Intl.DateTimeFormat("en-CA", { timeZone: "Australia/Melbourne", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const uploads = form.getAll("files").filter((item): item is File => item instanceof File && item.size > 0);
-  const validFiles = uploads.length <= 5 && uploads.every((file) => file.size <= 10 * 1024 * 1024 && ["image/jpeg", "image/png", "image/webp", "application/pdf", "application/postscript", "application/illustrator", "application/octet-stream"].includes(file.type));
-  if (!isShortText(name, 120) || !isEmail(email) || email.length > 254 || !isShortText(phone, 40) || !enquiryServices.includes(service) || !locations.some((item) => item.slug === location) || !/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(parsedDate.getTime()) || parsedDate.getUTCFullYear() !== year || parsedDate.getUTCMonth() !== month - 1 || parsedDate.getUTCDate() !== day || date <= melbourneToday || !["10:00", "13:00", "15:00"].includes(time) || (asText(form, "description") !== "" && !isShortText(asText(form, "description"), 2000)) || !validFiles) {
+  // Files normally arrive already uploaded to Storage (see FileUploader); direct form uploads are the fallback.
+  const uploaded = uploadsFromForm(form);
+  const validFiles = uploads.length + uploaded.files.length <= MAX_UPLOAD_FILES && uploads.every((file) => file.size <= MAX_UPLOAD_BYTES && isAllowedUpload(file.name, file.type));
+  if (!isShortText(name, 120) || !isEmail(email) || email.length > 254 || !isShortText(phone, 40) || !enquiryServices.includes(service) || !regionLabel(location) || !/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(parsedDate.getTime()) || parsedDate.getUTCFullYear() !== year || parsedDate.getUTCMonth() !== month - 1 || parsedDate.getUTCDate() !== day || date <= melbourneToday || !["10:00", "13:00", "15:00"].includes(time) || (asText(form, "description") !== "" && !isShortText(asText(form, "description"), 2000)) || !validFiles) {
     return NextResponse.json({ error: "Please check the required booking details." }, { status: 400 });
   }
   try {
-    const booking = await createBooking({ name, email, phone, service, date, time, projectType: service, business: asText(form, "business"), location, description: asText(form, "description"), files: uploads, attribution: formAttribution(form) });
+    const booking = await createBooking({ name, email, phone, service, date, time, projectType: service, business: asText(form, "business"), location: regionLabel(location)!, description: asText(form, "description"), files: uploads, uploads: uploaded, attribution: formAttribution(form) });
     return NextResponse.json({ booking }, { status: 201 });
   } catch (error) {
     console.error("Saving booking request failed", error);

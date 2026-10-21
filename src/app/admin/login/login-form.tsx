@@ -20,7 +20,7 @@ export function LoginForm() {
       await signOut(auth);
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Sign-in failed.");
-      router.replace("/admin/orders");
+      router.replace("/admin/enquiries");
       router.refresh();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message.replace(/^Firebase: /, "") : "Sign-in failed.");

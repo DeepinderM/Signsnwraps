@@ -11,10 +11,10 @@ const logoSrc = `data:image/png;base64,${await readFile(join(process.cwd(), "Ass
 
 export default function Image() {
   return new ImageResponse(
-    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#fff", color: "#000", gap: 26, borderBottom: "18px solid #03AAFA" }}>
+    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#E3ECF6", color: "#13233A", gap: 26, borderBottom: "18px solid #03AAFA" }}>
       <img src={logoSrc} width={900} height={314} alt="" />
-      <div style={{ fontSize: 34, letterSpacing: 2, color: "#000", fontWeight: 800 }}>SIGNS · PRINT · VEHICLE WRAPS · PPF</div>
-      <div style={{ fontSize: 26, color: "#444" }}>Expert advice. Bold results. · Laverton North, Melbourne</div>
+      <div style={{ fontSize: 34, letterSpacing: 2, color: "#13233A", fontWeight: 800 }}>SIGNS · PRINT · VEHICLE WRAPS · PPF</div>
+      <div style={{ fontSize: 26, color: "#4A5568" }}>Expert advice. Bold results. · Laverton North, Melbourne</div>
     </div>,
     size,
   );

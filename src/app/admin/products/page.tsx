@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requireSuperAdmin } from "@/lib/admin-auth";
 import { listAllProducts } from "@/lib/shop/products";
 import { categoryName, formatAud, productCategories, productHref } from "@/lib/shop/catalog";
 import { AdminNav } from "../admin-nav";
@@ -12,14 +12,14 @@ export const metadata: Metadata = { title: "Products" };
 type Props = { searchParams: Promise<{ q?: string; category?: string; saved?: string }> };
 
 export default async function AdminProductsPage({ searchParams }: Props) {
-  const admin = await requireAdmin();
+  const admin = await requireSuperAdmin();
   const { q = "", category = "", saved } = await searchParams;
   const all = await listAllProducts();
   const query = q.trim().toLowerCase();
   const products = all.filter((product) => (!category || product.category === category) && (!query || `${product.name} ${product.id}`.toLowerCase().includes(query)));
 
   return <>
-    <AdminNav email={admin.email} />
+    <AdminNav admin={{ email: admin.email, role: admin.role, store: admin.store }} />
     <div className="admin-head"><div><h1>Products</h1><p>{all.length} total · {all.filter((product) => product.active).length} live · {all.filter((product) => product.sample).length} sample listings</p></div><Link className="button button-orange" href="/admin/products/new">Add product</Link></div>
     {saved && <p className="admin-ok" role="status">Saved {saved}.</p>}
     {all.length === 0 && <div className="admin-card"><h2>No products yet</h2><p>Load the sample catalogue to get started: vehicle kits for every make and model in the kit finder, plus colour film, universal pieces and tools, all with placeholder prices and marked as samples. You can edit or remove any of them.</p><form action={loadSampleCatalog}><button className="button" type="submit">Load sample catalogue</button></form></div>}

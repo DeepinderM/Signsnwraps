@@ -6,6 +6,7 @@ import Link from "next/link";
 import { cart, useCart } from "@/lib/shop/cart-store";
 import { FREE_SHIPPING_OVER_CENTS, MAX_LINE_QTY, SHIPPING_FLAT_CENTS, formatAud, shippingCents, type DeliveryMethod } from "@/lib/shop/catalog";
 import { refreshCartProducts } from "@/app/wraps/cart/actions";
+import { PaymentMarks } from "./payment-marks";
 
 export function CartView() {
   const items = useCart();
@@ -65,10 +66,11 @@ export function CartView() {
         <label><input type="radio" name="delivery" checked={delivery === "pickup"} onChange={() => setDelivery("pickup")} /><span><b>Click & collect · Laverton North</b><small>Free · we'll email when it's ready</small></span></label>
       </fieldset>
       <dl><div><dt>Subtotal</dt><dd>{formatAud(subtotal)}</dd></div><div><dt>{delivery === "pickup" ? "Pickup" : "Shipping"}</dt><dd>{shipping ? formatAud(shipping) : "Free"}</dd></div><div className="cart-total"><dt>Total <small>incl. GST</small></dt><dd>{formatAud(subtotal + shipping)}</dd></div></dl>
-      <button className="button button-orange cart-checkout" type="button" onClick={checkout} disabled={status === "loading" || blocked}>{status === "loading" ? "Opening secure checkout…" : "Checkout securely"}</button>
+      <button className="button button-orange cart-checkout" type="button" onClick={checkout} disabled={status === "loading" || blocked}>{status === "loading" ? "Opening secure checkout…" : "Checkout · card or Apple Pay"}</button>
+      <PaymentMarks className="cart-marks" />
       {blocked && <p className="cart-error" role="alert">Remove or adjust unavailable items to continue.</p>}
       {error && <p className="cart-error" role="alert">{error}</p>}
-      <p className="cart-fine"><Link href="/account/login?next=/wraps/cart">Sign in</Link> to track this order in your account, or check out as a guest. Payments are processed by Stripe. Please confirm your vehicle year, trim and body variant before ordering a vehicle kit. See <Link href="/shipping-returns">shipping & returns</Link>.</p>
+      <p className="cart-fine">Pay securely by card, Apple Pay or Google Pay. Payments are processed by Stripe. Please confirm your vehicle year, trim and body variant before ordering a vehicle kit. See <Link href="/shipping-returns">shipping & returns</Link>.</p>
     </aside>
   </div>;
 }

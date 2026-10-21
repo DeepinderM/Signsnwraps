@@ -10,15 +10,15 @@ import { getVehicleSelection, kitCategories, kitCoverage } from "@/lib/data/wrap
 // Visible breadcrumb trail + BreadcrumbList structured data, derived from the URL.
 const labels: Record<string, string> = {
   signs: "Signs & Print", wraps: "Wraps & PPF", signage: "Commercial Signage", shopfronts: "Shopfronts", printing: "Printing", neon: "Neon Signs",
-  projects: "Projects", book: "Book a Consultation", "vehicle-wraps": "Vehicle Wraps", ppf: "Paint Protection Film", kits: "PPF Kits", shop: "Shop",
-  compare: "Compare Fitting Options", "how-to-install": "How to Install PPF", installers: "Installers", join: "Installer Program", faq: "FAQs",
+  projects: "Projects", book: "Book a Consultation", "vehicle-wraps": "Vehicle Wraps", ppf: "Colour PPF", kits: "PPF Kits", shop: "Shop",
+  compare: "Compare Fitting Options", "how-to-install": "How to Install PPF", installers: "Installers", join: "Become an Installer", faq: "FAQs",
   trade: "Trade", "shipping-returns": "Shipping & Returns", services: "Services", industries: "Industries", work: "Our Work",
   "expert-advice": "Expert Advice", quote: "Get a Quote", locations: "Locations", about: "About", contact: "Contact",
   account: "My Account", login: "Sign In",
   privacy: "Privacy Policy", terms: "Terms of Use", warranty: "Warranty", disclaimer: "Disclaimer",
 };
 const titleCase = (slug: string) => slug.split("-").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
-const HIDDEN = [/^\/$/, /^\/admin/, /^\/wraps\/cart/, /^\/wraps\/checkout/];
+const HIDDEN = [/^\/$/, /^\/admin/, /^\/wraps\/cart/, /^\/wraps\/checkout/, /^\/billing\//];
 
 export function crumbsFor(pathname: string) {
   const parts = pathname.split("/").filter(Boolean);

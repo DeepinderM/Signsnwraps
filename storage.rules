@@ -1,9 +1,20 @@
 rules_version = '2';
 
-// Product photos are uploaded by the server (Admin SDK) and served through download-token URLs,
-// which don't depend on these rules. No direct browser access is needed.
+// - Product photos and enquiry attachments are read and written by the server (Admin SDK), which bypasses these rules.
+// - Customers upload attachments directly from the booking/quote forms into uploads/<session>/<file>.
+//   The session must have been issued by the server (Firestore uploadSessions/<session>, short-lived),
+//   files are size- and type-limited, and nothing here can be read, listed, changed or deleted from a browser.
 service firebase.storage {
   match /b/{bucket}/o {
+    match /uploads/{session}/{fileName} {
+      allow create: if session.matches('^[a-f0-9]{32}$')
+        && fileName.matches('^[A-Za-z0-9._-]{1,140}$')
+        && request.resource.size > 0
+        && request.resource.size <= 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp|gif|heic|heif|svg[+]xml)|application/(pdf|postscript|illustrator|octet-stream)')
+        && firestore.exists(/databases/(default)/documents/uploadSessions/$(session))
+        && firestore.get(/databases/(default)/documents/uploadSessions/$(session)).data.expiresAt > request.time;
+    }
     match /{allPaths=**} {
       allow read, write: if false;
     }

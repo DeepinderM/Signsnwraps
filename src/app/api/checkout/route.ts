@@ -30,6 +30,10 @@ export async function POST(request: Request) {
   const stripe = getStripe();
   if (!stripe || !isFirebaseConfigured()) return NextResponse.json({ error: "Online checkout is not connected yet. Please call or email the studio to order." }, { status: 503 });
 
+  // Prices are members-only, so checkout needs a signed-in account.
+  const user = await getSessionUser();
+  if (!user) return NextResponse.json({ error: "Please log in or create an account to check out." }, { status: 401 });
+
   const parsed = parseBody(await request.json().catch(() => null));
   if (!parsed) return NextResponse.json({ error: "Your cart could not be read. Please refresh the page and try again." }, { status: 400 });
 
@@ -58,8 +62,7 @@ export async function POST(request: Request) {
   if (problems.length) return NextResponse.json({ error: problems.join(" "), problems }, { status: 409 });
 
   const shipping = shippingCents(subtotal, parsed.delivery);
-  // Signed-in customers: prefill their email in Stripe and link the order to their account.
-  const user = await getSessionUser();
+  // Prefill the customer's email in Stripe and link the order to their account.
   let session: Stripe.Checkout.Session;
   try {
     session = await stripe.checkout.sessions.create({
@@ -76,8 +79,8 @@ export async function POST(request: Request) {
           : { display_name: shipping === 0 ? `Free standard shipping (orders over $${FREE_SHIPPING_OVER_CENTS / 100})` : "Standard shipping · Australia", type: "fixed_amount", fixed_amount: { amount: shipping, currency: "aud" }, tax_behavior: "inclusive", delivery_estimate: { minimum: { unit: "business_day", value: 3 }, maximum: { unit: "business_day", value: 8 } } },
       }],
       custom_fields: [{ key: "vehicle", label: { type: "custom", custom: "Vehicle make, model & year" }, type: "text", optional: true, text: { maximum_length: 120 } }],
-      metadata: { delivery: parsed.delivery, source: "signsnwraps-web", ...(user ? { uid: user.uid } : {}) },
-      ...(user?.email ? { customer_email: user.email } : {}),
+      metadata: { delivery: parsed.delivery, source: "signsnwraps-web", uid: user.uid },
+      ...(user.email ? { customer_email: user.email } : {}),
       payment_intent_data: { metadata: { delivery: parsed.delivery } },
       success_url: `${origin}/wraps/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/wraps/cart`,

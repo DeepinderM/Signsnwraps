@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requireSuperAdmin } from "@/lib/admin-auth";
 import { listOrders } from "@/lib/shop/orders";
 import { formatAud, orderStatuses } from "@/lib/shop/catalog";
 import { AdminNav } from "../admin-nav";
@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Orders" };
 const dateFormat = new Intl.DateTimeFormat("en-AU", { dateStyle: "medium", timeStyle: "short", timeZone: "Australia/Melbourne" });
 
 export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
-  const admin = await requireAdmin();
+  const admin = await requireSuperAdmin();
   const { status = "open" } = await searchParams;
   const all = await listOrders(200);
   const closed = new Set(["completed", "cancelled", "refunded"]);
@@ -19,7 +19,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
   const label = (value: string) => orderStatuses.find((item) => item.value === value)?.label ?? value;
 
   return <>
-    <AdminNav email={admin.email} />
+    <AdminNav admin={{ email: admin.email, role: admin.role, store: admin.store }} />
     <div className="admin-head"><div><h1>Orders</h1><p>Paid orders from the online shop, newest first. Refunds are issued in the Stripe dashboard.</p></div></div>
     <nav className="admin-tabs" aria-label="Filter orders">{[["open", "Open"], ["paid", "New"], ["ready_for_pickup", "Ready for pickup"], ["shipped", "Shipped"], ["all", "All"]].map(([value, text]) => <Link key={value} href={`/admin/orders?status=${value}`} aria-current={status === value ? "page" : undefined}>{text}</Link>)}</nav>
     {orders.length === 0 ? <div className="admin-card"><p>No orders here yet.</p></div> : <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Delivery</th><th>Total</th><th>Status</th></tr></thead><tbody>
