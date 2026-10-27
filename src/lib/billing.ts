@@ -12,31 +12,36 @@ import type { Attribution } from "@/lib/services/crm";
 export type BillingKind = "quote" | "invoice";
 export type QuoteStatus = "draft" | "sent" | "accepted" | "declined" | "expired" | "invoiced";
 export type InvoiceStatus = "draft" | "sent" | "paid" | "void";
-export type LineItem = { description: string; qty: number; unitCents: number; gst: boolean };
+/** Roll-priced vinyl details kept with a line so the costing diagram can be shown (to the customer only if showDiagram). */
+export type RollDetails = { widthMm: number; heightMm: number; rollWidthMm: number; pricePerM2Cents: number; showDiagram: boolean };
+/**
+ * A quote/invoice line. `code` is the product code everyone reads (e.g. 3DL-LF-H300-D45-ACR-ALU-PVC), shown to the
+ * client and production; `production` is build instructions for the job sheet only (never shown to the client).
+ */
+export type LineItem = { description: string; qty: number; unitCents: number; gst: boolean; roll?: RollDetails; code?: string; production?: string; acp?: { widthMm: number; heightMm: number; signs?: number; showDiagram?: boolean; panelSet?: string } };
 export type BillingCustomer = { name: string; business: string; email: string; phone: string; address: string; abn: string };
 export type BillingEvent = { at: number; by: string; text: string };
 
 /**
- * Payment schedule. Under $1,000 (incl. GST): one payment in full. $1,000 or more:
- * 50% deposit before production, 30% before installation, 20% on completion.
+ * Payment schedule for every job: 40% deposit before production, 40% progress payment before installation,
+ * 20% final payment on completion. ("Payment in full" only appears on older, already-paid documents.)
  * A stage is "upcoming" until staff request it, "due" once requested (the first is due straight away), then "paid".
  */
-export const STAGED_THRESHOLD_CENTS = 100_000;
 export type StageKey = "full" | "deposit" | "installation" | "completion";
 export type PaymentStage = { key: StageKey; label: string; percent: number; amountCents: number; when: string; status: "upcoming" | "due" | "paid"; requestedAt: number; paidAt: number; reference: string };
 
 const stagePlan: Record<"full" | "staged", { key: StageKey; label: string; percent: number; when: string }[]> = {
   full: [{ key: "full", label: "Payment in full", percent: 100, when: "Before work starts" }],
   staged: [
-    { key: "deposit", label: "Deposit", percent: 50, when: "Before production" },
-    { key: "installation", label: "Progress payment", percent: 30, when: "Before installation" },
+    { key: "deposit", label: "Deposit", percent: 40, when: "Before production" },
+    { key: "installation", label: "Progress payment", percent: 40, when: "Before installation" },
     { key: "completion", label: "Final payment", percent: 20, when: "On completion" },
   ],
 };
 
 /** Fresh schedule for a total; the last stage absorbs rounding so the stages add up exactly. */
 export function buildSchedule(totalCents: number): PaymentStage[] {
-  const plan = stagePlan[totalCents >= STAGED_THRESHOLD_CENTS ? "staged" : "full"];
+  const plan = stagePlan.staged;
   let allocated = 0;
   return plan.map((stage, index) => {
     const amountCents = index === plan.length - 1 ? totalCents - allocated : Math.round((totalCents * stage.percent) / 100);

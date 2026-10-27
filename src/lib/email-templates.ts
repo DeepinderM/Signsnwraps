@@ -34,7 +34,7 @@ export function userTemplates(input: { name: string; staff: string }): EmailTemp
 
 type StageInfo = { label: string; percent: number; amount: string; when: string };
 
-/** "Deposit (50%): $1,073.05 · before production" lines for an email. */
+/** "Deposit (40%): $1,073.05 · before production" lines for an email. */
 const scheduleLines = (schedule: StageInfo[]) => schedule.map((stage) => `- ${stage.label}${stage.percent < 100 ? ` (${stage.percent}%)` : ""}: ${stage.amount} · ${stage.when.toLowerCase()}`).join("\n");
 
 export function billingTemplates(input: { kind: "quote" | "invoice"; number: string; name: string; title: string; total: string; due: string; link: string; staff: string; bank: string; schedule: StageInfo[]; dueStage: { label: string; percent: number; amount: string } | null }): EmailTemplate[] {
@@ -52,7 +52,7 @@ export function billingTemplates(input: { kind: "quote" | "invoice"; number: str
   return [
     { label: "Send invoice", subject: `Invoice ${input.number} from Signsnwraps`, body: `${hi}Please find attached invoice ${input.number}${what} for ${input.total} (incl. GST).\n\n${staged ? `${terms}\n\nTo get started, the ${payNow ? payNow.toLowerCase() : "deposit"} is due now, before we begin production.` : `Payment of ${input.total} is due by ${input.due}.`}\n\n${howToPay}\n\nThank you for your business.${end}` },
     ...(staged ? [
-      { label: "Installation payment", subject: `Invoice ${input.number}: progress payment before installation`, body: `${hi}Great news: your job${what} is ready for installation. As per our payment terms, the progress payment is now due:\n\n${payNow || "Progress payment (30%)"}\n\nOnce it's received we'll lock in your installation date.\n\n${howToPay}${end}` },
+      { label: "Installation payment", subject: `Invoice ${input.number}: progress payment before installation`, body: `${hi}Great news: your job${what} is ready for installation. As per our payment terms, the progress payment is now due:\n\n${payNow || "Progress payment (40%)"}\n\nOnce it's received we'll lock in your installation date.\n\n${howToPay}${end}` },
       { label: "Final payment", subject: `Invoice ${input.number}: final payment`, body: `${hi}Your project${what} is complete. Thank you for choosing Signsnwraps! The final payment is now due:\n\n${payNow || "Final payment (20%)"}\n\n${howToPay}${end}` },
     ] : []),
     { label: "Payment reminder", subject: `Reminder: payment due on invoice ${input.number}`, body: `${hi}A friendly reminder that a payment is due on invoice ${input.number}${payNow ? `:\n\n${payNow}` : "."}\n\n${howToPay}\n\nIf you've already paid, thank you and please ignore this email.${end}` },

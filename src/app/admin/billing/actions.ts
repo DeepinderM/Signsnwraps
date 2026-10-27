@@ -22,11 +22,24 @@ function parseItems(raw: string): LineItem[] | null {
     const items = JSON.parse(raw) as unknown;
     if (!Array.isArray(items) || items.length === 0 || items.length > 100) return null;
     const parsed = items.map((item) => {
-      const { description, qty, unitCents, gst } = (item ?? {}) as Record<string, unknown>;
+      const { description, qty, unitCents, gst, roll } = (item ?? {}) as Record<string, unknown>;
       if (typeof description !== "string" || description.trim().length === 0 || description.length > 2000) return null;
       if (typeof qty !== "number" || !Number.isFinite(qty) || qty <= 0 || qty > 100000) return null;
       if (typeof unitCents !== "number" || !Number.isInteger(unitCents) || Math.abs(unitCents) > 100_000_000) return null;
-      return { description: description.trim(), qty: Math.round(qty * 100) / 100, unitCents, gst: gst !== false };
+      const line: LineItem = { description: description.trim(), qty: Math.round(qty * 100) / 100, unitCents, gst: gst !== false };
+      const { code, production } = (item ?? {}) as Record<string, unknown>;
+      if (typeof code === "string" && code.trim()) line.code = code.trim().toUpperCase().replace(/[^A-Z0-9._/-]+/g, "").slice(0, 80);
+      if (typeof production === "string" && production.trim()) line.production = production.trim().slice(0, 2000);
+      const { acp } = (item ?? {}) as { acp?: { widthMm?: unknown; heightMm?: unknown; signs?: unknown; showDiagram?: unknown; panelSet?: unknown } };
+      if (acp && typeof acp.widthMm === "number" && typeof acp.heightMm === "number" && acp.widthMm > 0 && acp.heightMm > 0 && acp.widthMm <= 30000 && acp.heightMm <= 30000) line.acp = { widthMm: Math.round(acp.widthMm), heightMm: Math.round(acp.heightMm), ...(typeof acp.signs === "number" && acp.signs >= 1 && acp.signs <= 200 ? { signs: Math.round(acp.signs) } : {}), ...(acp.showDiagram === true ? { showDiagram: true } : {}), ...(typeof acp.panelSet === "string" && /^pvc-(10|16|20)-(white|black)$/.test(acp.panelSet) ? { panelSet: acp.panelSet } : {}) };
+      if (roll && typeof roll === "object") {
+        const { widthMm, heightMm, rollWidthMm, pricePerM2Cents, showDiagram } = roll as Record<string, unknown>;
+        const okNumber = (value: unknown, max: number) => typeof value === "number" && Number.isFinite(value) && value > 0 && value <= max;
+        if (okNumber(widthMm, 20000) && okNumber(heightMm, 20000) && okNumber(rollWidthMm, 5000) && okNumber(pricePerM2Cents, 10_000_000)) {
+          line.roll = { widthMm: Math.round(widthMm as number), heightMm: Math.round(heightMm as number), rollWidthMm: Math.round(rollWidthMm as number), pricePerM2Cents: Math.round(pricePerM2Cents as number), showDiagram: showDiagram === true };
+        }
+      }
+      return line;
     });
     return parsed.every(Boolean) ? (parsed as LineItem[]) : null;
   } catch {

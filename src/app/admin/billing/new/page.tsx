@@ -7,6 +7,7 @@ import { getDirectoryUser } from "@/lib/users";
 import { stores } from "@/lib/staff";
 import { AdminNav } from "../../admin-nav";
 import { BillingEditor } from "../billing-editor";
+import { listCatalog } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "New quote or invoice" };
@@ -15,7 +16,7 @@ export default async function NewBillingPage({ searchParams }: { searchParams: P
   const admin = await requireAdmin();
   const { kind: rawKind, enquiry: enquiryId = "", user: userId = "" } = await searchParams;
   const kind = rawKind === "invoice" ? "invoice" : "quote";
-  const settings = await getBillingSettings();
+  const [settings, catalog] = await Promise.all([getBillingSettings(), listCatalog({ activeOnly: true })]);
   // Prefill from the enquiry (if staff can see it) or from a customer account (super admins).
   const enquiry = enquiryId && /^[A-Za-z0-9]{1,40}$/.test(enquiryId) ? await getEnquiry(enquiryId) : null;
   const allowedEnquiry = enquiry && (admin.role === "super" || enquiry.store === admin.store) ? enquiry : null;
@@ -32,6 +33,6 @@ export default async function NewBillingPage({ searchParams }: { searchParams: P
     <AdminNav admin={{ email: admin.email, role: admin.role, store: admin.store }} />
     <Link className="text-link" href={allowedEnquiry ? `/admin/enquiries/${allowedEnquiry.id}` : `/admin/billing?kind=${kind}`}>← {allowedEnquiry ? "Back to enquiry" : "Quotes & invoices"}</Link>
     <div className="admin-head"><div><h1>New {kind === "quote" ? "quote" : settings.gstRegistered ? "tax invoice" : "invoice"}</h1><p>{allowedEnquiry ? `For ${allowedEnquiry.name}'s ${allowedEnquiry.service.toLowerCase()} enquiry. ` : ""}A number is assigned when you create it.</p></div></div>
-    <BillingEditor kind={kind} gstRegistered={settings.gstRegistered} stores={admin.role === "super" ? stores : null} initial={initial} />
+    <BillingEditor catalog={catalog} kind={kind} gstRegistered={settings.gstRegistered} stores={admin.role === "super" ? stores : null} initial={initial} />
   </>;
 }

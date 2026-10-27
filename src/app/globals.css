@@ -226,3 +226,32 @@ a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit}b
 .received-warn{display:flex;gap:6px;align-items:flex-start;margin-top:10px!important;color:#8a4b00}.received-warn svg{width:16px;height:16px;flex:0 0 auto;margin-top:2px}
 @media(max-width:520px){.uploader-list li{grid-template-columns:40px minmax(0,1fr) auto auto}.uploader-state{display:none}}
 @media(prefers-reduced-motion:reduce){.uploader-state .is-spinning{animation:none}}
+
+/* Roll costing diagram (quote picker; customer quote page when shown) */
+.roll-diagram{margin:0;border:1px solid #e5ebf1;background:#fff;padding:10px 12px;display:grid;gap:10px}
+.roll-diagram svg{width:100%;height:auto;max-height:340px;display:block}
+.rd-label{font-size:12px;font-weight:700;fill:#13233A}.rd-small{font-size:11px;fill:#6b7684}.rd-blue{fill:#026BA3}.rd-orange{fill:#b06a12}
+.rd-print{font-size:12.5px;font-weight:800;fill:#0b3f63}.rd-joint{font-size:11px;font-weight:800;fill:#b3261e}
+.rd-stats{margin:0;display:grid;gap:4px;font-size:13px}
+.rd-stats div{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:4px 0;border-bottom:1px solid #f0f3f6}
+.rd-stats dt{display:flex;align-items:center;gap:7px;color:#4A5568}.rd-stats dd{margin:0;font-weight:700;color:#13233A}.rd-stats dd small{display:block;font-weight:400;font-size:11.5px;color:#6b7684}
+.rd-stats dd:last-child{text-align:right}
+.rd-total{border-bottom:0!important}.rd-total dt{font-weight:700;color:#13233A}
+.rd-key{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid #9aa5b1}
+.rd-key-roll{background:#fff}.rd-key-print{background:#bfe6fb;border-color:#026BA3}.rd-key-waste{background:repeating-linear-gradient(45deg,#fff4e5 0 3px,#e7a54d 3px 5px);border-color:#e7a54d}
+.rd-note{margin:0;font-size:12.5px;color:#b3261e;font-weight:600}
+.rd-explain{margin:0;font-size:13px;color:#4A5568;line-height:1.5}
+.doc-rolls{margin-top:22px;display:grid;gap:14px}.doc-rolls>h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--electric-blue-ink);margin:0}
+.doc-roll h3{margin:0 0 8px;font-size:15px;color:#13233A}
+.doc-roll .roll-diagram{border-radius:14px}
+.prod-code{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:6px;background:#eef2f6;color:#13233A;font:600 11.5px ui-monospace,Menlo,monospace;letter-spacing:.02em}
+.doc-code{margin:6px 0 0;margin-left:0}
+/* ACP panel layout diagram */
+.acp-diagram{margin:0;border:1px solid #e5ebf1;background:#fff;padding:10px 12px;display:grid;gap:10px}
+.acp-diagram svg{width:100%;height:auto;max-height:340px;display:block}
+.acp-label{font-size:11px;font-weight:700;fill:#13233A}
+.acp-section{display:grid;gap:8px}.acp-section h4{margin:0;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:#026BA3}
+.acp-section .acp-diagram{border:0;padding:0}
+.acp-sheets{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.acp-sheet{display:grid;gap:4px;align-content:start}.acp-sheet svg{max-width:100%;height:auto;display:block}
+.acp-sheet p{margin:0;font-size:12.5px;color:#13233A}.acp-sheet small{display:block;color:#6b7684;font-size:11.5px}

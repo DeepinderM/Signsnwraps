@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FileDown } from "lucide-react";
 import { requireAdmin } from "@/lib/admin-auth";
-import { STAGED_THRESHOLD_CENTS, formatDate, getBillingDoc, getBillingSettings, isEditable, isOverdue, nextDueStage, statusLabel } from "@/lib/billing";
+import { formatDate, getBillingDoc, getBillingSettings, isEditable, isOverdue, nextDueStage, statusLabel } from "@/lib/billing";
 import { billingViewUrl } from "@/lib/billing-links";
 import { emailMode, getThread } from "@/lib/email";
 import { billingTemplates } from "@/lib/email-templates";
@@ -13,6 +13,7 @@ import { EmailThread } from "@/app/admin/email-composer";
 import { AdminNav } from "../../admin-nav";
 import { convertToInvoice } from "../actions";
 import { BillingEditor } from "../billing-editor";
+import { listCatalog } from "@/lib/catalog";
 import { CopyLink, StatusButtons } from "./billing-actions";
 import { PaymentSchedule } from "./payment-schedule";
 
@@ -26,7 +27,7 @@ export default async function BillingDocPage({ params, searchParams }: { params:
   const doc = await getBillingDoc((await params).id);
   if (!doc || (admin.role !== "super" && doc.store !== admin.store)) notFound();
   const { created } = await searchParams;
-  const [settings, thread] = await Promise.all([getBillingSettings(), getThread({ type: "billing", id: doc.id })]);
+  const [settings, thread, catalog] = await Promise.all([getBillingSettings(), getThread({ type: "billing", id: doc.id }), isEditable(doc) ? listCatalog({ activeOnly: true }) : Promise.resolve([])]);
   const link = billingViewUrl(doc.token);
   const label = doc.kind === "quote" ? "Quote" : settings.gstRegistered ? "Tax invoice" : "Invoice";
   const bank = settings.bsb && settings.accountNumber ? `Bank transfer: ${settings.accountName || settings.businessName}, BSB ${settings.bsb}, account ${settings.accountNumber}. Please use ${doc.number} as the reference.` : "";
@@ -45,6 +46,7 @@ export default async function BillingDocPage({ params, searchParams }: { params:
 
     <section className="admin-card bill-toolbar">
       <a className="button button-light" href={`/admin/billing/${doc.id}/pdf`} target="_blank" rel="noreferrer"><FileDown aria-hidden /> View PDF</a>
+      <Link className="button button-light" href={`/admin/billing/${doc.id}/job-sheet`}>Production job sheet</Link>
       <StatusButtons id={doc.id} buttons={buttons} />
       {doc.kind === "quote" && (doc.status === "accepted" || doc.status === "sent" || doc.status === "draft") && <form action={convertToInvoice}><input type="hidden" name="id" value={doc.id} /><button className={`button ${doc.status === "accepted" ? "button-orange" : "button-light"}`} type="submit">Convert to invoice</button></form>}
       {doc.invoiceId && <Link className="button button-light" href={`/admin/billing/${doc.invoiceId}`}>Open invoice</Link>}
@@ -62,7 +64,7 @@ export default async function BillingDocPage({ params, searchParams }: { params:
       </dl>
     </section>
 
-    <section className="admin-card" id="payments"><h2>Payment schedule <small>{doc.totalCents >= STAGED_THRESHOLD_CENTS ? "$1,000+ · 50% deposit, 30% before installation, 20% on completion" : "Under $1,000 · paid in full upfront"}</small></h2>
+    <section className="admin-card" id="payments"><h2>Payment schedule <small>{doc.schedule.length > 1 ? doc.schedule.map((stage) => `${stage.percent}% ${stage.when.toLowerCase()}`).join(", ") : "Paid in full"}</small></h2>
       <PaymentSchedule id={doc.id} schedule={doc.schedule} editable={doc.kind === "invoice" && doc.status !== "void" && doc.status !== "draft"} isQuote={doc.kind === "quote"} />
       {doc.kind === "invoice" && doc.status === "draft" && <p className="admin-hint">Send the invoice to request the {doc.schedule[0]?.label.toLowerCase()}. Later payments are requested here when the job reaches that stage.</p>}
     </section>
@@ -73,9 +75,9 @@ export default async function BillingDocPage({ params, searchParams }: { params:
           templates={billingTemplates({ kind: doc.kind, number: doc.number, name: doc.customer.name, title: doc.title, total: formatAud(doc.totalCents), due: formatDate(doc.dueDate), link, staff: admin.name || "The Signsnwraps team", bank, schedule: doc.schedule.map((stage) => ({ label: stage.label, percent: stage.percent, amount: formatAud(stage.amountCents), when: stage.when })), dueStage: nextDueStage(doc) ? { label: nextDueStage(doc)!.label, percent: nextDueStage(doc)!.percent, amount: formatAud(nextDueStage(doc)!.amountCents) } : null })} />}
     </section>
 
-    {isEditable(doc) ? <><h2 className="bill-section-title">Edit {doc.kind}</h2><BillingEditor id={doc.id} kind={doc.kind} gstRegistered={settings.gstRegistered} stores={admin.role === "super" ? stores : null} initial={{ ...doc, store: doc.store ?? "" }} /></>
+    {isEditable(doc) ? <><h2 className="bill-section-title">Edit {doc.kind}</h2><BillingEditor catalog={catalog} id={doc.id} kind={doc.kind} gstRegistered={settings.gstRegistered} stores={admin.role === "super" ? stores : null} initial={{ ...doc, store: doc.store ?? "" }} /></>
       : <section className="admin-card"><h2>Items</h2><p className="admin-hint">This {doc.kind} is {statusLabel(doc).toLowerCase()}{doc.paidCents > 0 && doc.status !== "paid" ? " and has payments recorded" : ""}, so it can no longer be edited.</p>
-        <table className="admin-table"><thead><tr><th>Description</th><th>Qty</th><th>Unit (ex GST)</th><th>Amount</th></tr></thead><tbody>{doc.items.map((item, index) => <tr key={index}><td className="admin-pre">{item.description}</td><td>{item.qty}</td><td>{formatAud(item.unitCents)}</td><td>{formatAud(Math.round(item.qty * item.unitCents))}</td></tr>)}</tbody>
+        <table className="admin-table"><thead><tr><th>Description</th><th>Qty</th><th>Unit (ex GST)</th><th>Amount</th></tr></thead><tbody>{doc.items.map((item, index) => <tr key={index}><td className="admin-pre">{item.description}{item.code && <><br /><code className="prod-code">{item.code}</code></>}</td><td>{item.qty}</td><td>{formatAud(item.unitCents)}</td><td>{formatAud(Math.round(item.qty * item.unitCents))}</td></tr>)}</tbody>
           <tfoot><tr><td colSpan={3}>Subtotal</td><td>{formatAud(doc.subtotalCents)}</td></tr><tr><td colSpan={3}>GST</td><td>{formatAud(doc.gstCents)}</td></tr><tr><th colSpan={3}>Total</th><th>{formatAud(doc.totalCents)}</th></tr></tfoot></table></section>}
 
     <section className="admin-card"><h2>History</h2><ol className="admin-timeline">{[...doc.history].sort((a, b) => a.at - b.at).map((item, index) => <li key={index} className="kind-status"><p>{item.text}</p><small>{item.by} · {stamp.format(item.at)}</small></li>)}</ol></section>

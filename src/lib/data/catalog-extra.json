@@ -1,0 +1,193 @@
+[
+ {
+  "id": "rough-terrain-scissor-lift",
+  "name": "Rough terrain scissor lift",
+  "category": "Lifts",
+  "priceCents": 75000,
+  "unit": "each",
+  "options": []
+ },
+ {
+  "id": "scissor-lift-hire",
+  "name": "Scissor Lift Hire",
+  "category": "Lifts",
+  "priceCents": 65000,
+  "unit": "each",
+  "options": []
+ },
+ {
+  "id": "standard-lift",
+  "name": "Standard Lift",
+  "category": "Lifts",
+  "priceCents": 26500,
+  "unit": "each",
+  "options": []
+ },
+ {
+  "id": "monomeric-vinyl-unlaminated-matt-finish",
+  "name": "Monomeric Vinyl UnLaminated Matt Finish",
+  "category": "Vinyl Stickers",
+  "priceCents": 9500,
+  "unit": "m²",
+  "pricing": "roll",
+  "options": [],
+  "rollWidthMm": 1500
+ },
+ {
+  "id": "one-way-vision-non-laminated-vinyl",
+  "name": "One way Vision (Non laminated) Vinyl",
+  "category": "Vinyl Stickers",
+  "priceCents": 13000,
+  "unit": "m²",
+  "pricing": "roll",
+  "options": [],
+  "rollWidthMm": 1500
+ },
+ {
+  "id": "vinyl-laminated-polymeric",
+  "name": "Vinyl laminated-polymeric",
+  "category": "Vinyl Stickers",
+  "priceCents": 12000,
+  "unit": "m²",
+  "pricing": "roll",
+  "options": [],
+  "rollWidthMm": 1500
+ },
+ {
+  "id": "vinyl-print-for-light-box",
+  "name": "Vinyl print for light box",
+  "category": "Vinyl Stickers",
+  "priceCents": 12000,
+  "unit": "m²",
+  "pricing": "roll",
+  "options": [],
+  "rollWidthMm": 1500
+ },
+ {
+  "id": "3d-letter-illuminated-line",
+  "name": "Illuminated horizontal line / underline",
+  "category": "3D Letters",
+  "priceCents": 30000,
+  "unit": "each",
+  "code": "3DL-LINE",
+  "production": "Illuminated line / underline to match the letters (LEDs, same face and return materials)",
+  "options": []
+ },
+ {
+  "id": "3d-letter-aluminium-channels",
+  "name": "Aluminium mounting channels",
+  "category": "3D Letters",
+  "priceCents": 35000,
+  "unit": "each",
+  "code": "3DL-CHAN",
+  "production": "Fabricate aluminium channels; hang or screw the letters onto them",
+  "options": []
+ },
+ {
+  "id": "basic-installation",
+  "name": "Basic Installation",
+  "category": "Installation",
+  "priceCents": 35000,
+  "unit": "each",
+  "code": "INST-BASIC",
+  "production": "Basic installation on site",
+  "options": []
+ },
+ {
+  "id": "full-day-installation",
+  "name": "Full Day Installation",
+  "category": "Installation",
+  "priceCents": 65000,
+  "unit": "day",
+  "code": "INST-DAY",
+  "production": "Full day installation on site (one installer)",
+  "options": []
+ },
+ {
+  "id": "full-day-installation-with-assistance",
+  "name": "Full Day Installation With Assistance",
+  "category": "Installation",
+  "priceCents": 85000,
+  "unit": "day",
+  "code": "INST-DAY-ASSIST",
+  "production": "Full day installation on site with an assistant (two people)",
+  "options": []
+ },
+ {
+  "id": "3d-letter-power-adapter",
+  "name": "LED power adapter (powers up to 9 letters)",
+  "category": "3D Letters",
+  "priceCents": 35000,
+  "unit": "each",
+  "code": "3DL-ADPT",
+  "production": "LED power adapter / power supply; one adapter per 9 illuminated letters",
+  "options": []
+ },
+ {
+  "id": "acp-panel-1200x1200",
+  "name": "ACP panel 1200 x 1200 mm, vinyl printed & laminated",
+  "category": "ACP Panels",
+  "priceCents": 25000,
+  "unit": "panel",
+  "code": "ACP-1212",
+  "production": "ACP panel 1200 x 1200 mm: print vinyl to artwork, laminate, apply to panel",
+  "options": []
+ },
+ {
+  "id": "acp-panel-1220x2440",
+  "name": "ACP panel 1220 x 2440 mm, vinyl printed & laminated",
+  "category": "ACP Panels",
+  "priceCents": 45000,
+  "unit": "panel",
+  "code": "ACP-1224",
+  "production": "ACP panel 1220 x 2440 mm: print vinyl to artwork, laminate, apply to panel",
+  "options": []
+ },
+ {
+  "id": "acp-panel-1220x3050",
+  "name": "ACP panel 1220 x 3050 mm, vinyl printed & laminated",
+  "category": "ACP Panels",
+  "priceCents": 55000,
+  "unit": "panel",
+  "code": "ACP-1230",
+  "production": "ACP panel 1220 x 3050 mm: print vinyl to artwork, laminate, apply to panel",
+  "options": []
+ },
+ {
+  "id": "acp-panel-1500x3000",
+  "name": "ACP panel 1500 x 3000 mm, vinyl printed & laminated",
+  "category": "ACP Panels",
+  "priceCents": 55000,
+  "unit": "panel",
+  "code": "ACP-1530",
+  "production": "ACP panel 1500 x 3000 mm: print vinyl to artwork, laminate, apply to panel",
+  "options": []
+ },
+ {
+  "id": "metal-a-frame-double-sided-600x900mm",
+  "name": "Metal A-Frame Double Sided (600x900mm)",
+  "category": "Display",
+  "subcategory": "A Frame",
+  "priceCents": 25000,
+  "unit": "each",
+  "options": []
+ },
+ {
+  "id": "premium-pull-up-banner-2000x850mm",
+  "name": "Premium Pull Up Banner (2000x850mm)",
+  "category": "Display",
+  "subcategory": "Pull Up Banners",
+  "priceCents": 26000,
+  "unit": "each",
+  "options": []
+ },
+ {
+  "id": "standard-pull-up-banner-2000x850mm",
+  "name": "Standard Pull Up Banner (2000x850mm)",
+  "category": "Display",
+  "subcategory": "Pull Up Banners",
+  "priceCents": 16500,
+  "unit": "each",
+  "options": []
+ }
+]

@@ -7,8 +7,8 @@ import { clientAuth, isFirebaseClientConfigured } from "@/lib/firebase/client";
 import type { Admin } from "@/lib/admin-auth";
 import { serviceRegions } from "@/lib/data/content";
 
-const superLinks = [["/admin/enquiries", "Enquiries"], ["/admin/billing", "Quotes & invoices"], ["/admin/reports", "Sales"], ["/admin/orders", "Orders"], ["/admin/products", "Products"], ["/admin/users", "Users"], ["/admin/staff", "Staff"]];
-const storeLinks = [["/admin/enquiries", "Enquiries"], ["/admin/billing", "Quotes & invoices"], ["/admin/reports", "Sales"]];
+const superLinks = [["/admin/enquiries", "Enquiries"], ["/admin/billing", "Quotes & invoices"], ["/admin/catalog", "Catalog"], ["/admin/reports", "Sales"], ["/admin/orders", "Orders"], ["/admin/products", "Products"], ["/admin/users", "Users"], ["/admin/staff", "Staff"]];
+const storeLinks = [["/admin/enquiries", "Enquiries"], ["/admin/billing", "Quotes & invoices"], ["/admin/catalog", "Catalog"], ["/admin/reports", "Sales"]];
 
 export function AdminNav({ admin }: { admin: Pick<Admin, "email" | "role" | "store"> }) {
   const pathname = usePathname();

@@ -10,6 +10,8 @@ import { payInvoice } from "./actions";
 import { QuoteResponse } from "./quote-response";
 import { CreditCard, Lock } from "lucide-react";
 import { PaymentMarks } from "@/components/shop/payment-marks";
+import { RollDiagram } from "@/components/billing/roll-diagram";
+import { AcpDiagram } from "@/components/billing/acp-diagram";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Your quote or invoice", robots: { index: false, follow: false } };
@@ -53,7 +55,7 @@ export default async function BillingViewPage({ params, searchParams }: { params
     <div className="doc-grid">
       <div className="doc-card">
         <table className="doc-table"><thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Amount</th></tr></thead><tbody>
-          {doc.items.map((item, index) => <tr key={index}><td>{item.description}</td><td>{item.qty}</td><td>{formatAud(item.unitCents)}</td><td>{formatAud(Math.round(item.qty * item.unitCents))}</td></tr>)}
+          {doc.items.map((item, index) => <tr key={index}><td>{item.description}{item.code && <><br /><code className="prod-code doc-code">{item.code}</code></>}</td><td>{item.qty}</td><td>{formatAud(item.unitCents)}</td><td>{formatAud(Math.round(item.qty * item.unitCents))}</td></tr>)}
         </tbody></table>
         <dl className="doc-totals">
           <div><dt>Subtotal (ex GST)</dt><dd>{formatAud(doc.subtotalCents)}</dd></div>
@@ -61,8 +63,18 @@ export default async function BillingViewPage({ params, searchParams }: { params
           <div className="is-total"><dt>Total{settings.gstRegistered ? " incl. GST" : ""}</dt><dd>{formatAud(doc.totalCents)}</dd></div>
           {!isQuote && doc.paidCents > 0 && <><div><dt>Paid</dt><dd>−{formatAud(doc.paidCents)}</dd></div><div className="is-total"><dt>Balance due</dt><dd>{formatAud(Math.max(balance, 0))}</dd></div></>}
         </dl>
+        {doc.items.some((item) => item.roll?.showDiagram) && <div className="doc-rolls"><h2>How your vinyl is calculated</h2>
+          {doc.items.map((item, index) => item.roll?.showDiagram ? <div key={index} className="doc-roll"><h3>{item.description.split("\n")[0]}</h3>
+            <RollDiagram audience="customer" id={`roll-${index}`} widthMm={item.roll.widthMm} heightMm={item.roll.heightMm} rollWidthMm={item.roll.rollWidthMm} pricePerM2Cents={item.roll.pricePerM2Cents} />
+          </div> : null)}
+        </div>}
+        {doc.items.some((item) => item.acp?.showDiagram) && <div className="doc-rolls"><h2>How your panels are cut</h2>
+          {doc.items.map((item, index) => item.acp?.showDiagram ? <div key={index} className="doc-roll"><h3>{item.description.split("\n")[0]} · {item.acp.signs ?? item.qty} × {item.acp.widthMm} × {item.acp.heightMm} mm</h3>
+            <AcpDiagram widthMm={item.acp.widthMm} heightMm={item.acp.heightMm} qty={item.acp.signs ?? Math.max(1, Math.round(item.qty))} showCost={false} id={`doc-acp-${index}`} panelSet={item.acp.panelSet} />
+          </div> : null)}
+        </div>}
         <div className="doc-schedule"><h2>Payment schedule</h2>
-          <p>{staged ? "For projects of $1,000 or more: 50% deposit before production, 30% before installation and 20% on completion." : "Projects under $1,000 are paid in full before work starts."}</p>
+          <p>{staged ? doc.schedule.map((stage) => `${stage.label} (${stage.percent}%) ${stage.when.toLowerCase()}`).join(" · ") : "Paid in full before work starts."}</p>
           <ol>{doc.schedule.map((stage) => <li key={stage.key} className={isQuote ? "" : `is-${stage.status}`}>
             <span><b>{stage.label}{stage.percent < 100 ? ` · ${stage.percent}%` : ""}</b><small>{stage.when}</small></span>
             <span className="doc-stage-amount">{formatAud(stage.amountCents)}{!isQuote && <em>{stage.status === "paid" ? "Paid" : stage.status === "due" ? "Due now" : "Later"}</em>}</span>
