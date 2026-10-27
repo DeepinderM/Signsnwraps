@@ -12,3 +12,4 @@ ui-debug.log
 *-service-account*.json
 .emulator-data
 .vercel
+*firebase-adminsdk*.json
