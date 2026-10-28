@@ -122,6 +122,8 @@ span.admin-status{cursor:default}
 .admin-card .mail-msg.is-in p{color:#13233A}
 .admin-card .mail-msg.is-failed p{color:#8a1c12}
 .mail-attachments{margin:8px 0 0;font-size:12.5px;opacity:.85}
+.mail-compose-options{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;min-width:0;flex:1}.mail-compose-options .mail-attach{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}.mail-attach-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid #9fb3c8;background:#f7f9fb;color:#026BA3;font-weight:700;font-size:13px;padding:7px 14px;border-radius:999px;cursor:pointer}.mail-attach-btn:hover:not(:disabled){background:#e3f4fd}.mail-attach-btn svg{width:15px;height:15px}.mail-attach-btn:disabled{opacity:.5;cursor:default}
+.mail-files-out{margin:0 0 4px}.mail-files-out li span{font-weight:700;color:#13233A;overflow-wrap:anywhere}.mail-files-out li.is-error{border-color:#e5a3a3}.mail-files-out li.is-error small{color:#b42318}
 .mail-files{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}.mail-files li{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #c9d4df;border-radius:8px;padding:5px 6px 5px 10px;font-size:13px;max-width:100%}.mail-files a{display:inline-flex;align-items:center;gap:5px;color:#026BA3;font-weight:700;text-decoration:none;overflow-wrap:anywhere}.mail-files a:hover{text-decoration:underline}.mail-files svg{width:15px;height:15px;flex:none}.mail-files small{color:#6b7684;white-space:nowrap}.mail-files .mail-file-dl{padding:3px;border-radius:6px;color:#13233A}.mail-files .mail-file-dl:hover{background:#e3f4fd}
 /* Quotes & invoices */
 .admin-head-actions{display:flex;flex-wrap:wrap;gap:8px}

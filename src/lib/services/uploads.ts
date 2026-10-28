@@ -11,10 +11,11 @@ import { MAX_UPLOAD_BYTES, MAX_UPLOAD_FILES, isAllowedUpload, type UploadedFile 
 const SESSION_TTL_MS = 2 * 60 * 60 * 1000;
 const sessions = () => db().collection("uploadSessions");
 
-export async function createUploadSession() {
+/** staff: true lets the browser upload into staff-uploads/<session>/ instead (email attachments; callers must check the admin). */
+export async function createUploadSession({ staff = false } = {}) {
   if (!isFirebaseConfigured()) throw new Error("Uploads are not available.");
   const id = randomBytes(16).toString("hex");
-  await sessions().doc(id).set({ createdAt: Timestamp.now(), expiresAt: Timestamp.fromMillis(Date.now() + SESSION_TTL_MS) });
+  await sessions().doc(id).set({ createdAt: Timestamp.now(), expiresAt: Timestamp.fromMillis(Date.now() + SESSION_TTL_MS), ...(staff ? { staff: true } : {}) });
   return { id, expiresAt: Date.now() + SESSION_TTL_MS };
 }
 

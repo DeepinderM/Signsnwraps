@@ -92,7 +92,7 @@ export async function getThread(context: EmailContext, address?: string): Promis
 }
 
 /** Sends an email to a customer as part of a conversation and logs it. */
-export async function sendCustomerEmail(input: { to: string; subject: string; body: string; sentBy: { name: string; email: string }; context: EmailContext; attachments?: EmailAttachment[] }): Promise<{ id: string } | { error: string }> {
+export async function sendCustomerEmail(input: { to: string; subject: string; body: string; sentBy: { name: string; email: string }; context: EmailContext; attachments?: EmailAttachment[]; files?: EmailFile[] }): Promise<{ id: string } | { error: string }> {
   const mode = emailMode();
   if (mode === "off") return { error: "Email sending isn't set up yet. Add the SMTP settings in Vercel (see .env.example)." };
   const to = input.to.toLowerCase();
@@ -115,7 +115,7 @@ export async function sendCustomerEmail(input: { to: string; subject: string; bo
     error = reason instanceof Error ? reason.message.slice(0, 300) : "Unknown error";
     console.error("Customer email failed", reason);
   }
-  await ref.set({ direction: "out", from: mailbox(), to, subject: input.subject, body: input.body, messageId, sentBy: input.sentBy.name || input.sentBy.email, sentByEmail: input.sentBy.email, status, error, attachments: input.attachments?.map((item) => item.filename) ?? [], context: input.context, at: FieldValue.serverTimestamp() });
+  await ref.set({ direction: "out", from: mailbox(), to, subject: input.subject, body: input.body, messageId, sentBy: input.sentBy.name || input.sentBy.email, sentByEmail: input.sentBy.email, status, error, attachments: input.attachments?.map((item) => item.filename) ?? [], files: input.files ?? [], context: input.context, at: FieldValue.serverTimestamp() });
   return status === "failed" ? { error: `The email couldn't be sent: ${error}` } : { id: ref.id };
 }
 

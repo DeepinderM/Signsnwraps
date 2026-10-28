@@ -15,6 +15,17 @@ service firebase.storage {
         && firestore.exists(/databases/(default)/documents/uploadSessions/$(session))
         && firestore.get(/databases/(default)/documents/uploadSessions/$(session)).data.expiresAt > request.time;
     }
+    // Staff attaching files to an email in the admin portal: any file type, 15 MB each, through a
+    // short-lived session that only signed-in staff can create (uploadSessions/<session> with staff == true).
+    match /staff-uploads/{session}/{fileName} {
+      allow create: if session.matches('^[a-f0-9]{32}$')
+        && fileName.matches('^[A-Za-z0-9._-]{1,160}$')
+        && request.resource.size > 0
+        && request.resource.size <= 15 * 1024 * 1024
+        && firestore.exists(/databases/(default)/documents/uploadSessions/$(session))
+        && firestore.get(/databases/(default)/documents/uploadSessions/$(session)).data.staff == true
+        && firestore.get(/databases/(default)/documents/uploadSessions/$(session)).data.expiresAt > request.time;
+    }
     match /{allPaths=**} {
       allow read, write: if false;
     }
