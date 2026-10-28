@@ -2,7 +2,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { PDFDocument, PDFName, PDFString, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
-import { formatDate, nextDueStage, type BillingDoc, type BillingSettings } from "@/lib/billing";
+import { discountLabel, formatDate, nextDueStage, type BillingDoc, type BillingSettings } from "@/lib/billing";
 import { getStripe } from "@/lib/stripe";
 import { rollUsage } from "@/lib/catalog-types";
 import { describeJobBill, panelName, panelsForSet, planAcpJob } from "@/lib/acp-panels";
@@ -114,7 +114,7 @@ export async function renderBillingPdf(doc: BillingDoc, settings: BillingSetting
 
   // Totals.
   const balance = doc.totalCents - doc.paidCents;
-  const rows: [string, string, boolean][] = [["Subtotal (ex GST)", money(doc.subtotalCents), false], ...(settings.gstRegistered ? [["GST (10%)", money(doc.gstCents), false] as [string, string, boolean]] : []), [`Total${settings.gstRegistered ? " incl. GST" : ""} (AUD)`, money(doc.totalCents), true]];
+  const rows: [string, string, boolean][] = [["Subtotal (ex GST)", money(doc.subtotalCents), false], ...(doc.discountCents > 0 ? [[discountLabel(doc.discount).replace(/^(.{34}).+$/, "$1…"), `-${money(doc.discountCents)}`, false], ["Subtotal after discount", money(doc.subtotalCents - doc.discountCents), false]] as [string, string, boolean][] : []), ...(settings.gstRegistered ? [["GST (10%)", money(doc.gstCents), false] as [string, string, boolean]] : []), [`Total${settings.gstRegistered ? " incl. GST" : ""} (AUD)`, money(doc.totalCents), true]];
   if (doc.kind === "invoice" && doc.paidCents > 0) rows.push(["Paid", `-${money(doc.paidCents)}`, false], ["Balance due", money(Math.max(balance, 0)), true]);
   ensure(rows.length * 18 + 20);
   y -= 6;

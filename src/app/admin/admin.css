@@ -122,6 +122,7 @@ span.admin-status{cursor:default}
 .admin-card .mail-msg.is-in p{color:#13233A}
 .admin-card .mail-msg.is-failed p{color:#8a1c12}
 .mail-attachments{margin:8px 0 0;font-size:12.5px;opacity:.85}
+.mail-files{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}.mail-files li{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #c9d4df;border-radius:8px;padding:5px 6px 5px 10px;font-size:13px;max-width:100%}.mail-files a{display:inline-flex;align-items:center;gap:5px;color:#026BA3;font-weight:700;text-decoration:none;overflow-wrap:anywhere}.mail-files a:hover{text-decoration:underline}.mail-files svg{width:15px;height:15px;flex:none}.mail-files small{color:#6b7684;white-space:nowrap}.mail-files .mail-file-dl{padding:3px;border-radius:6px;color:#13233A}.mail-files .mail-file-dl:hover{background:#e3f4fd}
 /* Quotes & invoices */
 .admin-head-actions{display:flex;flex-wrap:wrap;gap:8px}
 .bill-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
@@ -363,6 +364,11 @@ span.admin-status{cursor:default}
 .cat-show-diagram:focus-within,.bill-roll:focus-within{outline:3px solid #03AAFA;outline-offset:2px}
 .bill-roll small{flex-basis:100%;order:3;font-weight:500;font-size:12px;color:#4A5568;margin-left:32px}
 /* 3D letter builder: one line per letter height */
+.bill-discount{border:1px solid #e5ebf1;border-radius:8px;padding:10px 14px 14px;margin:14px 0 0;display:grid;grid-template-columns:auto minmax(150px,220px) minmax(200px,1fr);gap:12px 16px;align-items:start}.bill-discount legend{font-weight:700;font-size:13.5px;padding:0 4px}.bill-discount legend small{font-weight:500;color:#6b7684}
+.bill-discount-type{display:flex;border:1px solid #c9d4df;border-radius:999px;overflow:hidden;align-self:start;margin-top:27px}.bill-discount-type label{padding:8px 14px;font-size:13px;font-weight:700;color:#13233A;cursor:pointer;white-space:nowrap}.bill-discount-type label+label{border-left:1px solid #c9d4df}.bill-discount-type label.is-on{background:#13233A;color:#fff}.bill-discount-type input{position:absolute;opacity:0;pointer-events:none}.bill-discount-type label:has(input:focus-visible){outline:2px solid #03AAFA;outline-offset:-2px}
+.bill-discount .bill-money span:last-child:not(:first-child){padding:0 10px 0 4px;color:#6b7684}.bill-discount-quick{display:flex;gap:6px;flex-wrap:wrap}.bill-discount-quick .ls-chip{margin-top:6px;padding:3px 10px}.bill-discount .admin-error{grid-column:1/-1;margin:0}
+.bill-totals .is-discount dd,.bill-totals .is-discount dt{color:#0a7a3d;font-weight:700}
+@media(max-width:800px){.bill-discount{grid-template-columns:1fr}.bill-discount-type{justify-self:start}}
 .ls-power{grid-template-columns:minmax(0,1fr) minmax(0,2fr);align-items:start}
 .ls-install-row{display:flex;gap:10px;align-items:stretch}.ls-install-row select{flex:1;min-width:0}
 .ls-days{display:flex;align-items:center;border:1px solid #c9d4df;border-radius:6px;background:#fff;overflow:hidden;flex:none}

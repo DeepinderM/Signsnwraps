@@ -41,7 +41,7 @@ const accepted = (doc: BillingDoc) => doc.status === "accepted" || doc.status ==
 /** Each payment received on an invoice, with its ex-GST share of the invoice. */
 function payments(doc: BillingDoc) {
   if (doc.kind !== "invoice" || doc.status === "void") return [];
-  const exRatio = doc.totalCents ? doc.subtotalCents / doc.totalCents : 1;
+  const exRatio = doc.totalCents ? (doc.subtotalCents - (doc.discountCents ?? 0)) / doc.totalCents : 1;
   return doc.schedule.filter((stage) => stage.status === "paid").map((stage) => ({ doc, incGst: stage.amountCents, exGst: Math.round(stage.amountCents * exRatio), date: melbourneDate(stage.paidAt || doc.paidAt) }));
 }
 const paymentsIn = (docs: BillingDoc[], range: { from: string; to: string }) => docs.flatMap(payments).filter((payment) => inRange(payment.date, range));
@@ -63,14 +63,14 @@ function storeRow(key: string, label: string, docs: BillingDoc[], range: { from:
   const paidValue = paid.reduce((sum, payment) => sum + payment.exGst, 0);
   return {
     key, label,
-    quotes: quotes.length, quotesValue: quotes.reduce((sum, doc) => sum + doc.subtotalCents, 0),
-    won: won.length, wonValue: won.reduce((sum, doc) => sum + doc.subtotalCents, 0), winRate: decided.length ? won.length / decided.length : null,
-    invoices: invoices.length, invoicedValue: invoices.reduce((sum, doc) => sum + doc.subtotalCents, 0),
+    quotes: quotes.length, quotesValue: quotes.reduce((sum, doc) => sum + doc.subtotalCents - (doc.discountCents ?? 0), 0),
+    won: won.length, wonValue: won.reduce((sum, doc) => sum + doc.subtotalCents - (doc.discountCents ?? 0), 0), winRate: decided.length ? won.length / decided.length : null,
+    invoices: invoices.length, invoicedValue: invoices.reduce((sum, doc) => sum + doc.subtotalCents - (doc.discountCents ?? 0), 0),
     paid: paid.length, paidValue, paidIncGst: paid.reduce((sum, payment) => sum + payment.incGst, 0),
     outstanding: open.reduce((sum, doc) => sum + doc.totalCents - doc.paidCents, 0),
     overdue: open.filter(isOverdue).reduce((sum, doc) => sum + doc.totalCents - doc.paidCents, 0),
     // Average job size (ex GST) across invoices that received money in the period.
-    avgSale: (() => { const jobs = [...new Set(paid.map((payment) => payment.doc))]; return jobs.length ? Math.round(jobs.reduce((sum, doc) => sum + doc.subtotalCents, 0) / jobs.length) : null; })(),
+    avgSale: (() => { const jobs = [...new Set(paid.map((payment) => payment.doc))]; return jobs.length ? Math.round(jobs.reduce((sum, doc) => sum + doc.subtotalCents - (doc.discountCents ?? 0), 0) / jobs.length) : null; })(),
   };
 }
 

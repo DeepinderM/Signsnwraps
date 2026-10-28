@@ -5,6 +5,7 @@ import { BookOpen, Plus, Trash2 } from "lucide-react";
 import { rollUsage, type CatalogItem } from "@/lib/catalog-types";
 import { panelSetLabel } from "@/lib/acp-panels";
 import type { RollDetails } from "@/lib/billing";
+import { discountAmount, type Discount } from "@/lib/billing-discount";
 import { CatalogPicker, type PickedLine } from "./catalog-picker";
 import { saveBilling } from "./actions";
 
@@ -12,7 +13,7 @@ type Item = { key: number; description: string; qty: string; price: string; gst:
 type Customer = { name: string; business: string; email: string; phone: string; address: string; abn: string };
 type Props = {
   id?: string; kind: "quote" | "invoice"; gstRegistered: boolean; stores: { value: string; label: string }[] | null; catalog: CatalogItem[];
-  initial: { store: string; customer: Customer; items: { description: string; qty: number; unitCents: number; gst: boolean; roll?: RollDetails; code?: string; production?: string; acp?: { widthMm: number; heightMm: number; signs?: number; showDiagram?: boolean; panelSet?: string } }[]; title: string; notes: string; issueDate: string; dueDate: string; enquiryId: string; userId: string };
+  initial: { store: string; customer: Customer; discount: Discount | null; items: { description: string; qty: number; unitCents: number; gst: boolean; roll?: RollDetails; code?: string; production?: string; acp?: { widthMm: number; heightMm: number; signs?: number; showDiagram?: boolean; panelSet?: string } }[]; title: string; notes: string; issueDate: string; dueDate: string; enquiryId: string; userId: string };
 };
 
 const money = (cents: number) => `$${(cents / 100).toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -28,7 +29,13 @@ export function BillingEditor({ id, kind, gstRegistered, stores, catalog, initia
 
   const lines = items.map((item) => { const qty = Number(item.qty) || 0, unit = toCents(item.price) || 0, amount = Math.round(qty * unit); return { ...item, qty, unit, amount, gstCents: gstRegistered && item.gst ? Math.round(amount * 0.1) : 0 }; });
   const subtotal = lines.reduce((sum, line) => sum + line.amount, 0);
-  const gst = lines.reduce((sum, line) => sum + line.gstCents, 0);
+  // Discount on the whole job (ex GST), before GST; GST is on the discounted price (same maths as totals() on the server).
+  const [discount, setDiscount] = useState({ type: initial.discount?.type ?? "none", value: initial.discount ? String(initial.discount.type === "amount" ? (initial.discount.value / 100).toFixed(2) : initial.discount.value) : "", reason: initial.discount?.reason ?? "" });
+  const discountValue = Number(discount.value.replace(/[$,%\s]/g, "")) || 0;
+  const discountCents = discount.type === "none" ? 0 : discountAmount({ type: discount.type as Discount["type"], value: discount.type === "amount" ? Math.round(discountValue * 100) : discountValue, reason: "" }, subtotal);
+  const discountTooBig = (discount.type === "percent" && discountValue > 100) || (discount.type === "amount" && Math.round(discountValue * 100) > subtotal && subtotal > 0);
+  const taxable = lines.reduce((sum, line) => sum + (line.gstCents ? line.amount : 0), 0);
+  const gst = gstRegistered ? Math.round((taxable - (subtotal ? Math.round((discountCents * taxable) / subtotal) : 0)) * 0.1) : 0;
 
   // A catalog product fills the starter line if it's still empty, otherwise it's added below.
   const addFromCatalog = (line: PickedLine) => setItems((current) => {
@@ -93,10 +100,24 @@ export function BillingEditor({ id, kind, gstRegistered, stores, catalog, initia
         <button type="button" className="bill-add" onClick={() => setItems((current) => [...current, { key: nextKey++, description: "", qty: "1", price: "", gst: true }])}><Plus aria-hidden /> Add custom line</button>
       </div>
       {showCatalog && <CatalogPicker items={catalog} kind={kind} onAdd={addFromCatalog} onClose={() => setShowCatalog(false)} />}
+      <fieldset className="bill-discount"><legend>Discount <small>(optional, off the subtotal before GST)</small></legend>
+        <div className="bill-discount-type" role="radiogroup" aria-label="Discount type">
+          {([["none", "No discount"], ["percent", "% off"], ["amount", "$ off"]] as const).map(([value, text]) => <label key={value} className={discount.type === value ? "is-on" : ""}><input type="radio" name="discountType" value={value} checked={discount.type === value} onChange={() => setDiscount((current) => ({ ...current, type: value }))} />{text}</label>)}
+        </div>
+        {discount.type !== "none" && <>
+          <div className="field"><label htmlFor="b-discount">{discount.type === "percent" ? "Percent off" : "Amount off (ex GST)"}</label>
+            <div className="bill-money">{discount.type === "amount" && <span>$</span>}<input id="b-discount" name="discountValue" inputMode="decimal" value={discount.value} onChange={(event) => setDiscount((current) => ({ ...current, value: event.target.value }))} placeholder={discount.type === "percent" ? "10" : "100.00"} />{discount.type === "percent" && <span>%</span>}</div>
+            {discount.type === "percent" && <div className="bill-discount-quick">{[5, 10, 15, 20].map((percent) => <button key={percent} type="button" className={`ls-chip${discountValue === percent ? " is-on" : ""}`} onClick={() => setDiscount((current) => ({ ...current, value: String(percent) }))}>{percent}%</button>)}</div>}</div>
+          <div className="field"><label htmlFor="b-discount-reason">Reason <small>(shown to the customer, optional)</small></label><input id="b-discount-reason" name="discountReason" value={discount.reason} onChange={(event) => setDiscount((current) => ({ ...current, reason: event.target.value }))} maxLength={120} placeholder="e.g. Repeat customer, Bundle deal" /></div>
+          {discountTooBig && <p className="admin-error" role="alert">{discount.type === "percent" ? "A discount can't be more than 100%." : "The discount can't be more than the subtotal."}</p>}
+        </>}
+      </fieldset>
       <dl className="bill-totals">
         <div><dt>Subtotal (ex GST)</dt><dd>{money(subtotal)}</dd></div>
+        {discountCents > 0 && <><div className="is-discount"><dt>Discount{discount.type === "percent" ? ` (${discountValue}%)` : ""}{discount.reason.trim() ? `: ${discount.reason.trim()}` : ""}</dt><dd>−{money(discountCents)}</dd></div>
+          <div><dt>Subtotal after discount</dt><dd>{money(subtotal - discountCents)}</dd></div></>}
         {gstRegistered && <div><dt>GST (10%)</dt><dd>{money(gst)}</dd></div>}
-        <div className="is-total"><dt>Total{gstRegistered ? " incl. GST" : ""}</dt><dd>{money(subtotal + gst)}</dd></div>
+        <div className="is-total"><dt>Total{gstRegistered ? " incl. GST" : ""}</dt><dd>{money(subtotal - discountCents + gst)}</dd></div>
       </dl>
     </section>
 

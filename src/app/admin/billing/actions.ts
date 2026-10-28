@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin, requireSuperAdmin, type Admin } from "@/lib/admin-auth";
 import {
   addDays, channelFor, createBillingDoc, isEditable, updateStage, type BillingOrigin, type StageKey, getBillingDoc, getBillingSettings, saveBillingSettings, setBillingStatus, todayIso, updateBillingDoc,
-  type BillingDoc, type BillingDraft, type BillingKind, type LineItem,
+  type BillingDoc, type BillingDraft, type Discount, type BillingKind, type LineItem,
 } from "@/lib/billing";
 import { addEnquiryNote, getEnquiry } from "@/lib/services/enquiries";
 import { isStoreId } from "@/lib/staff";
@@ -16,6 +16,19 @@ export type BillingResult = { ok?: string; error?: string } | null;
 const who = (admin: Admin) => admin.name || admin.email;
 const creator = (admin: Admin) => ({ createdBy: who(admin), createdByEmail: admin.email, createdByRole: admin.role, createdByStore: admin.store });
 const canAccess = (admin: Admin, doc: Pick<BillingDoc, "store">) => admin.role === "super" || (!!admin.store && doc.store === admin.store);
+
+/** Discount fields from the editor: null for none, undefined if invalid. */
+function parseDiscount(form: FormData): Discount | null | undefined {
+  const type = String(form.get("discountType") ?? "none");
+  if (type === "none") return null;
+  const value = Number(String(form.get("discountValue") ?? "").replace(/[$,%\s]/g, ""));
+  if (!Number.isFinite(value) || value < 0) return undefined;
+  if (value === 0) return null;
+  const reason = field(form, "discountReason", 120);
+  if (type === "percent") return value <= 100 ? { type, value: Math.round(value * 100) / 100, reason } : undefined;
+  if (type === "amount") return { type, value: Math.round(value * 100), reason };
+  return undefined;
+}
 
 function parseItems(raw: string): LineItem[] | null {
   try {
@@ -75,7 +88,11 @@ export async function saveBilling(_: BillingResult, form: FormData): Promise<Bil
   const enquiryId = existing?.enquiryId ?? field(form, "enquiryId", 40);
   const enquiry = !existing && enquiryId ? await getEnquiry(enquiryId) : null;
   if (!existing && enquiryId && (!enquiry || (admin.role !== "super" && enquiry.store !== admin.store))) return { error: "That enquiry isn't available to you." };
-  const draft: BillingDraft = { store, customer, items, title: field(form, "title", 200), notes: field(form, "notes", 3000), issueDate, dueDate, enquiryId, userId: existing?.userId ?? field(form, "userId", 128) };
+  const discount = parseDiscount(form);
+  if (discount === undefined) return { error: "Check the discount: a % from 0 to 100, or an amount that isn't more than the subtotal." };
+  const subtotal = items.reduce((sum, item) => sum + Math.round(item.qty * item.unitCents), 0);
+  if (discount?.type === "amount" && discount.value > subtotal) return { error: "The discount can't be more than the subtotal." };
+  const draft: BillingDraft = { store, customer, items, discount, title: field(form, "title", 200), notes: field(form, "notes", 3000), issueDate, dueDate, enquiryId, userId: existing?.userId ?? field(form, "userId", 128) };
 
   if (existing) {
     await updateBillingDoc(existing.id, draft, who(admin), existing.store);
@@ -134,7 +151,7 @@ export async function convertToInvoice(form: FormData) {
   const issueDate = todayIso();
   // The invoice keeps the quote's lead channel so the sale is credited to the original source.
   const origin: BillingOrigin = { ...doc.origin, kind: "quote", label: `Quote ${doc.number}${doc.origin.kind === "enquiry" ? ` (${doc.origin.label})` : ""}`, ...creator(admin) };
-  const created = await createBillingDoc("invoice", { store: doc.store, customer: doc.customer, items: doc.items, title: doc.title, notes: doc.notes, issueDate, dueDate: addDays(issueDate, settings.paymentTermsDays), enquiryId: doc.enquiryId, userId: doc.userId }, who(admin), { fromQuoteId: doc.id, origin });
+  const created = await createBillingDoc("invoice", { store: doc.store, customer: doc.customer, items: doc.items, discount: doc.discount, title: doc.title, notes: doc.notes, issueDate, dueDate: addDays(issueDate, settings.paymentTermsDays), enquiryId: doc.enquiryId, userId: doc.userId }, who(admin), { fromQuoteId: doc.id, origin });
   await setBillingStatus(doc.id, { status: "invoiced", invoiceId: created.id }, who(admin), `Converted to invoice ${created.number}`);
   if (doc.enquiryId) await addEnquiryNote(doc.enquiryId, `Quote ${doc.number} converted to invoice ${created.number}`, who(admin)).catch(() => undefined);
   redirect(`/admin/billing/${created.id}?created=1`);

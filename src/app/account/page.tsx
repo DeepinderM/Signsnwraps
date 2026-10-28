@@ -30,7 +30,7 @@ export default async function AccountPage() {
           {order.trackingNumber && <p className="account-tracking">Tracking number: <b>{order.trackingNumber}</b></p>}
         </li>)}</ul>}
       </section>
-      <section className="account-card"><h2>Your details</h2><ProfileForm name={displayName} phone={profile.phone} /><p className="account-hint">Questions about an order? Email <a href={`mailto:hello@signsnwraps.com.au`}>hello@signsnwraps.com.au</a> with your order number.</p></section>
+      <section className="account-card"><h2>Your details</h2><ProfileForm name={displayName} phone={profile.phone} /><p className="account-hint">Questions about an order? Email <a href={`mailto:sale@signsnwraps.com.au`}>sale@signsnwraps.com.au</a> with your order number.</p></section>
     </div>
   </div></section>;
 }

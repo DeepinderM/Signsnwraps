@@ -4,7 +4,7 @@ import nodemailer, { type Transporter } from "nodemailer";
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
-import { db } from "@/lib/firebase/admin";
+import { bucket, db } from "@/lib/firebase/admin";
 import { addEnquiryNote } from "@/lib/services/enquiries";
 
 // Customer email conversations in the admin portal.
@@ -16,7 +16,7 @@ import { addEnquiryNote } from "@/lib/services/enquiries";
 //
 // SMTP_HOST, SMTP_PORT (465 SSL | 587 STARTTLS), SMTP_USER, SMTP_PASS — the shared mailbox
 // IMAP_HOST (default: derived from SMTP_HOST), IMAP_PORT (993), IMAP_USER/IMAP_PASS (default: SMTP ones)
-// EMAIL_FROM e.g. "Signsnwraps <hello@signsnwraps.com.au>" (default SMTP_USER)
+// EMAIL_FROM e.g. "Signsnwraps <sale@signsnwraps.com.au>" (default SMTP_USER)
 // Without SMTP settings in development, outgoing emails are printed to the server log instead.
 
 export type EmailContext = { type: "enquiry" | "order" | "user" | "billing"; id: string };
@@ -24,7 +24,15 @@ export type EmailAttachment = { filename: string; content: Uint8Array; contentTy
 export type ThreadMessage = {
   id: string; direction: "out" | "in"; from: string; fromName: string; to: string; subject: string;
   body: string; quoted: string; at: number; status: "sent" | "logged" | "failed" | "received"; error: string; sentBy: string; attachments: string[];
+  /** Files from a customer's reply, saved to Storage; open them via /admin/emails/<id>/files/<index>. */
+  files: EmailFile[];
 };
+export type EmailFile = { name: string; path: string; size: number; contentType: string };
+type IncomingFile = { filename: string; contentType: string; content: Buffer };
+
+// Limits for files saved from customer replies.
+const MAX_REPLY_FILES = 15;
+const MAX_REPLY_FILE_BYTES = 25 * 1024 * 1024;
 
 const emails = () => db().collection("emails");
 
@@ -65,6 +73,7 @@ function toMessage(id: string, data: FirebaseFirestore.DocumentData): ThreadMess
   return {
     id, direction: data.direction === "in" ? "in" : "out", from: data.from ?? "", fromName: data.fromName ?? "", to: data.to ?? "", subject: data.subject ?? "",
     body: data.body ?? "", quoted: data.quoted ?? "", at: toMillis(data.at), status: data.status ?? "sent", error: data.error ?? "", sentBy: data.sentBy ?? "", attachments: Array.isArray(data.attachments) ? data.attachments : [],
+    files: Array.isArray(data.files) ? data.files : [],
   };
 }
 
@@ -130,7 +139,24 @@ const normaliseSubject = (subject: string) => subject.replace(/^((re|fw|fwd|aw)\
 const imapHost = () => process.env.IMAP_HOST || (process.env.SMTP_HOST ?? "").replace(/^smtp\.gmail\.com$/, "imap.gmail.com").replace(/^smtp\.office365\.com$/, "outlook.office365.com").replace(/^smtp\./, "imap.");
 
 /** Files one incoming email against its conversation. Returns true when it was new and matched. */
-export async function fileIncoming(mail: { messageId: string; inReplyTo: string; references: string[]; from: string; fromName: string; subject: string; text: string; date: Date }) {
+/** Saves a reply's attachments to Storage (emails/<id>/…) and returns what was stored. */
+async function storeReplyFiles(id: string, files: IncomingFile[]): Promise<EmailFile[]> {
+  const stored: EmailFile[] = [];
+  for (const [index, file] of files.slice(0, MAX_REPLY_FILES).entries()) {
+    if (!file.content.length || file.content.length > MAX_REPLY_FILE_BYTES) continue;
+    const name = (file.filename || `attachment-${index + 1}`).replace(/[\/\\]+/g, "_").slice(0, 140);
+    const path = `emails/${id}/${index}-${name.replace(/[^A-Za-z0-9._-]+/g, "_")}`;
+    try {
+      await bucket().file(path).save(file.content, { contentType: file.contentType || "application/octet-stream", resumable: false });
+      stored.push({ name, path, size: file.content.length, contentType: file.contentType || "application/octet-stream" });
+    } catch (reason) {
+      console.error("Couldn't save reply attachment", name, reason);
+    }
+  }
+  return stored;
+}
+
+export async function fileIncoming(mail: { messageId: string; inReplyTo: string; references: string[]; from: string; fromName: string; subject: string; text: string; date: Date; files?: IncomingFile[] }) {
   const from = mail.from.toLowerCase();
   if (!from || from === mailbox()) return false;
   const candidates = [mail.inReplyTo, ...mail.references].filter(Boolean).slice(-30);
@@ -144,10 +170,21 @@ export async function fileIncoming(mail: { messageId: string; inReplyTo: string;
   if (!match?.context) return false;
   const id = createHash("sha1").update(mail.messageId || `${from}|${mail.subject}|${mail.date.toISOString()}`).digest("hex").slice(0, 32);
   const { body, quoted } = splitQuoted(mail.text);
+  const files = mail.files ?? [];
   try {
-    await emails().doc(id).create({ direction: "in", from, fromName: mail.fromName, to: mailbox(), subject: mail.subject, body: body.slice(0, 20000), quoted: quoted.slice(0, 20000), messageId: mail.messageId, inReplyTo: mail.inReplyTo, status: "received", context: match.context, at: Timestamp.fromDate(mail.date) });
+    await emails().doc(id).create({ direction: "in", from, fromName: mail.fromName, to: mailbox(), subject: mail.subject, body: body.slice(0, 20000), quoted: quoted.slice(0, 20000), messageId: mail.messageId, inReplyTo: mail.inReplyTo, status: "received", context: match.context, at: Timestamp.fromDate(mail.date), attachments: files.map((file) => file.filename), files: [] });
   } catch {
-    return false; // already filed
+    // Already filed. Replies filed before attachments were saved get their files now.
+    const existing = await emails().doc(id).get();
+    if (files.length && existing.exists && !(existing.get("files") ?? []).length) {
+      const stored = await storeReplyFiles(id, files);
+      if (stored.length) await emails().doc(id).update({ files: stored, attachments: stored.map((file) => file.name) });
+    }
+    return false;
+  }
+  if (files.length) {
+    const stored = await storeReplyFiles(id, files);
+    await emails().doc(id).update({ files: stored, attachments: stored.map((file) => file.name) });
   }
   if (match.context.type === "enquiry") await addEnquiryNote(match.context.id, `Customer replied: “${mail.subject}”`, mail.fromName || from, "email").catch(() => undefined);
   return true;
@@ -179,7 +216,9 @@ export async function syncReplies({ force = false } = {}): Promise<{ added: numb
           const sender = parsed.from?.value[0];
           const references = Array.isArray(parsed.references) ? parsed.references : parsed.references ? [parsed.references] : [];
           const text = parsed.text || (typeof parsed.html === "string" ? parsed.html.replace(/<[^>]+>/g, " ") : "");
-          if (await fileIncoming({ messageId: parsed.messageId ?? "", inReplyTo: parsed.inReplyTo ?? "", references, from: sender?.address ?? "", fromName: sender?.name ?? "", subject: parsed.subject ?? "", text, date: parsed.date ?? new Date() })) added += 1;
+          // Real attachments only: small images embedded in the HTML (signature logos, icons) are skipped.
+          const files = parsed.attachments.filter((item) => !(item.related && item.size < 200 * 1024)).map((item) => ({ filename: item.filename ?? "", contentType: item.contentType, content: item.content }));
+          if (await fileIncoming({ messageId: parsed.messageId ?? "", inReplyTo: parsed.inReplyTo ?? "", references, from: sender?.address ?? "", fromName: sender?.name ?? "", subject: parsed.subject ?? "", text, date: parsed.date ?? new Date(), files })) added += 1;
         }
       }
     } finally {

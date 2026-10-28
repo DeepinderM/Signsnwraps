@@ -10,7 +10,7 @@ export const SITE = {
   alternateNames: ["Signs N' Wraps", "Signs n Wraps", "SIGNSNWRAPS"],
   tagline: "Expert advice. Bold results.",
   summary: "Signsnwraps is a signage, printing, vehicle wrap and paint protection film (PPF) studio in Laverton North, Melbourne. It helps businesses and vehicle owners plan, create and protect the way they are seen, from shopfront signs and fleet branding to colour-change wraps and pre-cut PPF kits.",
-  email: "hello@signsnwraps.com.au",
+  email: "sale@signsnwraps.com.au",
   // Placeholder number on the site; leave out of structured data until the real one is confirmed.
   telephone: null as string | null,
   address: { locality: "Laverton North", region: "VIC", postalCode: "3026", country: "AU" },

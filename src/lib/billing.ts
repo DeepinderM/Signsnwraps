@@ -19,6 +19,10 @@ export type RollDetails = { widthMm: number; heightMm: number; rollWidthMm: numb
  * client and production; `production` is build instructions for the job sheet only (never shown to the client).
  */
 export type LineItem = { description: string; qty: number; unitCents: number; gst: boolean; roll?: RollDetails; code?: string; production?: string; acp?: { widthMm: number; heightMm: number; signs?: number; showDiagram?: boolean; panelSet?: string } };
+// Discount helpers live in billing-discount.ts so the browser-side quote editor can use them too.
+import { discountAmount, type Discount } from "./billing-discount";
+export { discountAmount, discountLabel, type Discount } from "./billing-discount";
+
 export type BillingCustomer = { name: string; business: string; email: string; phone: string; address: string; abn: string };
 export type BillingEvent = { at: number; by: string; text: string };
 
@@ -76,7 +80,8 @@ export type BillingDoc = {
   id: string; kind: BillingKind; number: string; status: QuoteStatus | InvoiceStatus; token: string;
   store: StoreId | null; customer: BillingCustomer; items: LineItem[];
   title: string; notes: string; issueDate: string; dueDate: string;
-  subtotalCents: number; gstCents: number; totalCents: number; paidCents: number;
+  /** subtotalCents is before the discount; ex-GST value of the job = subtotalCents − discountCents. */
+  subtotalCents: number; discount: Discount | null; discountCents: number; gstCents: number; totalCents: number; paidCents: number;
   enquiryId: string; userId: string; fromQuoteId: string; invoiceId: string;
   createdBy: string; createdAt: number; updatedAt: number; sentAt: number; respondedAt: number; paidAt: number;
   history: BillingEvent[];
@@ -114,10 +119,14 @@ export const formatDate = (iso: string) => iso ? new Intl.DateTimeFormat("en-AU"
 
 const withSchedule = (sums: ReturnType<typeof totals>) => ({ ...sums, schedule: buildSchedule(sums.totalCents) });
 
-export function totals(items: LineItem[], gstRegistered = true) {
+export function totals(items: LineItem[], gstRegistered = true, discount: Discount | null = null) {
   const subtotalCents = items.reduce((sum, item) => sum + Math.round(item.qty * item.unitCents), 0);
-  const gstCents = gstRegistered ? items.reduce((sum, item) => sum + (item.gst ? Math.round(Math.round(item.qty * item.unitCents) * 0.1) : 0), 0) : 0;
-  return { subtotalCents, gstCents, totalCents: subtotalCents + gstCents };
+  const discountCents = discountAmount(discount, subtotalCents);
+  // GST is on the discounted price: the discount is shared across the lines in proportion to their amounts.
+  const taxable = items.reduce((sum, item) => sum + (item.gst ? Math.round(item.qty * item.unitCents) : 0), 0);
+  const taxableAfter = subtotalCents ? taxable - Math.round((discountCents * taxable) / subtotalCents) : 0;
+  const gstCents = gstRegistered ? Math.round(taxableAfter * 0.1) : 0;
+  return { subtotalCents, discountCents, gstCents, totalCents: subtotalCents - discountCents + gstCents };
 }
 
 const billing = () => db().collection("billing");
@@ -147,7 +156,7 @@ function toDoc(id: string, data: DocumentData): BillingDoc {
     id, kind: data.kind === "invoice" ? "invoice" : "quote", number: data.number ?? "", status: data.status ?? "draft", token: data.token ?? "",
     store: data.store ?? null, customer: { name: "", business: "", email: "", phone: "", address: "", abn: "", ...data.customer }, items: Array.isArray(data.items) ? data.items : [],
     title: data.title ?? "", notes: data.notes ?? "", issueDate: data.issueDate ?? "", dueDate: data.dueDate ?? "",
-    subtotalCents: data.subtotalCents ?? 0, gstCents: data.gstCents ?? 0, totalCents: data.totalCents ?? 0, paidCents: data.paidCents ?? 0,
+    subtotalCents: data.subtotalCents ?? 0, discount: data.discount ?? null, discountCents: data.discountCents ?? 0, gstCents: data.gstCents ?? 0, totalCents: data.totalCents ?? 0, paidCents: data.paidCents ?? 0,
     enquiryId: data.enquiryId ?? "", userId: data.userId ?? "", fromQuoteId: data.fromQuoteId ?? "", invoiceId: data.invoiceId ?? "",
     createdBy: data.createdBy ?? "", createdAt: millis(data.createdAt), updatedAt: millis(data.updatedAt), sentAt: millis(data.sentAt), respondedAt: millis(data.respondedAt), paidAt: millis(data.paidAt),
     history: Array.isArray(data.history) ? data.history : [],
@@ -172,7 +181,7 @@ async function nextNumber(kind: BillingKind) {
 
 const event = (by: string, text: string): BillingEvent => ({ at: Date.now(), by, text });
 
-export type BillingDraft = Pick<BillingDoc, "store" | "customer" | "items" | "title" | "notes" | "issueDate" | "dueDate" | "enquiryId" | "userId">;
+export type BillingDraft = Pick<BillingDoc, "store" | "customer" | "items" | "discount" | "title" | "notes" | "issueDate" | "dueDate" | "enquiryId" | "userId">;
 
 export async function createBillingDoc(kind: BillingKind, draft: BillingDraft, by: string, extra: { fromQuoteId?: string; origin: BillingOrigin }) {
   const settings = await getBillingSettings();
@@ -180,7 +189,7 @@ export async function createBillingDoc(kind: BillingKind, draft: BillingDraft, b
   const number = await nextNumber(kind);
   await ref.set({
     // Customer link token: letters and digits only, so it survives copy/paste and PDF line wraps.
-    kind, number, status: "draft", token: randomBytes(20).toString("hex"), ...draft, ...withSchedule(totals(draft.items, settings.gstRegistered)), paidCents: 0,
+    kind, number, status: "draft", token: randomBytes(20).toString("hex"), ...draft, ...withSchedule(totals(draft.items, settings.gstRegistered, draft.discount)), paidCents: 0,
     fromQuoteId: extra.fromQuoteId ?? "", invoiceId: "", createdBy: by, origin: extra.origin, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
     history: [event(by, `${kind === "quote" ? "Quote" : "Invoice"} ${number} created (${extra.origin.label}) · managed by ${storeLabel(draft.store)}`)],
   });
@@ -192,7 +201,7 @@ export async function updateBillingDoc(id: string, draft: BillingDraft, by: stri
   const events = [event(by, "Details updated")];
   if (previousStore !== draft.store) events.push({ ...event(by, `Managing store changed from ${storeLabel(previousStore)} to ${storeLabel(draft.store)}`), at: Date.now() + 1 });
   // Only called while nothing has been paid (see isEditable), so the schedule can be rebuilt from the new total.
-  await billing().doc(id).update({ ...draft, ...withSchedule(totals(draft.items, settings.gstRegistered)), updatedAt: FieldValue.serverTimestamp(), history: FieldValue.arrayUnion(...events) });
+  await billing().doc(id).update({ ...draft, ...withSchedule(totals(draft.items, settings.gstRegistered, draft.discount)), updatedAt: FieldValue.serverTimestamp(), history: FieldValue.arrayUnion(...events) });
 }
 
 export async function setBillingStatus(id: string, changes: Partial<Pick<BillingDoc, "status" | "paidCents" | "invoiceId">> & { sentAt?: boolean; respondedAt?: boolean; paidAt?: boolean }, by: string, text: string) {

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FileDown } from "lucide-react";
 import { requireAdmin } from "@/lib/admin-auth";
-import { formatDate, getBillingDoc, getBillingSettings, isEditable, isOverdue, nextDueStage, statusLabel } from "@/lib/billing";
+import { discountLabel, formatDate, getBillingDoc, getBillingSettings, isEditable, isOverdue, nextDueStage, statusLabel } from "@/lib/billing";
 import { billingViewUrl } from "@/lib/billing-links";
 import { emailMode, getThread } from "@/lib/email";
 import { billingTemplates } from "@/lib/email-templates";
@@ -78,7 +78,7 @@ export default async function BillingDocPage({ params, searchParams }: { params:
     {isEditable(doc) ? <><h2 className="bill-section-title">Edit {doc.kind}</h2><BillingEditor catalog={catalog} id={doc.id} kind={doc.kind} gstRegistered={settings.gstRegistered} stores={admin.role === "super" ? stores : null} initial={{ ...doc, store: doc.store ?? "" }} /></>
       : <section className="admin-card"><h2>Items</h2><p className="admin-hint">This {doc.kind} is {statusLabel(doc).toLowerCase()}{doc.paidCents > 0 && doc.status !== "paid" ? " and has payments recorded" : ""}, so it can no longer be edited.</p>
         <table className="admin-table"><thead><tr><th>Description</th><th>Qty</th><th>Unit (ex GST)</th><th>Amount</th></tr></thead><tbody>{doc.items.map((item, index) => <tr key={index}><td className="admin-pre">{item.description}{item.code && <><br /><code className="prod-code">{item.code}</code></>}</td><td>{item.qty}</td><td>{formatAud(item.unitCents)}</td><td>{formatAud(Math.round(item.qty * item.unitCents))}</td></tr>)}</tbody>
-          <tfoot><tr><td colSpan={3}>Subtotal</td><td>{formatAud(doc.subtotalCents)}</td></tr><tr><td colSpan={3}>GST</td><td>{formatAud(doc.gstCents)}</td></tr><tr><th colSpan={3}>Total</th><th>{formatAud(doc.totalCents)}</th></tr></tfoot></table></section>}
+          <tfoot><tr><td colSpan={3}>Subtotal</td><td>{formatAud(doc.subtotalCents)}</td></tr>{doc.discountCents > 0 && <tr><td colSpan={3}>{discountLabel(doc.discount)}</td><td>−{formatAud(doc.discountCents)}</td></tr>}<tr><td colSpan={3}>GST</td><td>{formatAud(doc.gstCents)}</td></tr><tr><th colSpan={3}>Total</th><th>{formatAud(doc.totalCents)}</th></tr></tfoot></table></section>}
 
     <section className="admin-card"><h2>History</h2><ol className="admin-timeline">{[...doc.history].sort((a, b) => a.at - b.at).map((item, index) => <li key={index} className="kind-status"><p>{item.text}</p><small>{item.by} · {stamp.format(item.at)}</small></li>)}</ol></section>
   </>;

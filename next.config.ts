@@ -34,6 +34,9 @@ const nextConfig: NextConfig = {
   // /wraps/film was removed; send old links and bookmarks to the PPF page.
   async redirects() {
     return [
+      // One address for search engines: the old Vercel address sends visitors (and Google) to the real domain.
+      // /api is left out so webhooks (e.g. Stripe) still pointed at the old address keep working: they don't follow redirects.
+      { source: "/:path((?!api/).*)", has: [{ type: "host", value: "signsnwraps.vercel.app" }], destination: "https://signsnwraps.com.au/:path", permanent: true },
       { source: "/wraps/film", destination: "/wraps/ppf", permanent: true },
       // One URL per service: these duplicated the Signs/Wraps pages.
       { source: "/services/signage", destination: "/signs/signage", permanent: true },
@@ -41,6 +44,11 @@ const nextConfig: NextConfig = {
       { source: "/services/vehicle-wraps", destination: "/wraps/vehicle-wraps", permanent: true },
       { source: "/services/ppf", destination: "/wraps/ppf", permanent: true },
     ];
+  },
+  // Private pages (customer quotes/invoices and their PDFs, admin, accounts, APIs) are never indexed, even if a link leaks.
+  async headers() {
+    const noindex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
+    return ["/billing/:path*", "/admin/:path*", "/account/:path*", "/api/:path*"].map((source) => ({ source, headers: noindex }));
   },
   turbopack: { root: path.resolve(process.cwd()) },
 };

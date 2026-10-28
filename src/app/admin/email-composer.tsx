@@ -1,7 +1,8 @@
 "use client";
 
 import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent } from "react";
-import { RefreshCw, Reply, Send } from "lucide-react";
+import { Download, Paperclip, RefreshCw, Reply, Send } from "lucide-react";
+import { formatBytes as formatSize } from "@/lib/uploads";
 import { checkReplies, sendEmail } from "./email-actions";
 import type { EmailTemplate } from "@/lib/email-templates";
 import type { ThreadMessage } from "@/lib/email";
@@ -62,7 +63,10 @@ export function EmailThread({ to, name, contextType, contextId, templates, threa
           {message.direction === "in" && <em className="mail-status is-received">Reply</em>}</div>
         <p className="mail-subject">{message.subject}</p>
         <p className="mail-body">{message.body}</p>
-        {message.attachments.length > 0 && <p className="mail-attachments">Attached: {message.attachments.join(", ")}</p>}
+        {message.files.length > 0 ? <ul className="mail-files" aria-label="Attachments">{message.files.map((file, index) => <li key={file.path}>
+            <a href={`/admin/emails/${message.id}/files/${index}`} target="_blank" rel="noreferrer"><Paperclip aria-hidden /> {file.name}</a> <small>{formatSize(file.size)}</small>
+            <a className="mail-file-dl" href={`/admin/emails/${message.id}/files/${index}?download=1`} aria-label={`Download ${file.name}`}><Download aria-hidden /></a></li>)}</ul>
+          : message.attachments.length > 0 && <p className="mail-attachments">Attached: {message.attachments.join(", ")}</p>}
         {message.quoted && <details className="mail-quoted"><summary>Show quoted text</summary><p className="mail-body">{message.quoted}</p></details>}
         {message.error && <small className="mail-error">{message.error}</small>}
       </li>)}

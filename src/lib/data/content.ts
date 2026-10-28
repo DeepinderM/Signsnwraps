@@ -25,7 +25,7 @@ export const industries: Industry[] = [
 ];
 
 export const locations: Location[] = [
-  { slug: "laverton-north", name: "Laverton North", region: "Victoria", address: "Laverton North, VIC 3026, Australia", phone: "+61 3 0000 0000", email: "hello@signsnwraps.com.au", hours: ["Monday–Friday · 8:30am–5:00pm", "Saturday · By appointment", "Sunday · Closed"], services: ["Signage consultation", "Vehicle wraps", "PPF & vehicle protection", "Printing and fleet branding"] },
+  { slug: "laverton-north", name: "Laverton North", region: "Victoria", address: "Laverton North, VIC 3026, Australia", phone: "+61 3 0000 0000", email: "sale@signsnwraps.com.au", hours: ["Monday–Friday · 8:30am–5:00pm", "Saturday · By appointment", "Sunday · Closed"], services: ["Signage consultation", "Vehicle wraps", "PPF & vehicle protection", "Printing and fleet branding"] },
 ];
 
 export const projects: Project[] = [

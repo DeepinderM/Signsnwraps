@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { FileDown } from "lucide-react";
-import { formatDate, getBillingDocByToken, getBillingSettings, isOverdue, nextDueStage, statusLabel, todayIso } from "@/lib/billing";
+import { discountLabel, formatDate, getBillingDocByToken, getBillingSettings, isOverdue, nextDueStage, statusLabel, todayIso } from "@/lib/billing";
 import { recordInvoicePayment } from "@/lib/billing-payments";
 import { getStripe } from "@/lib/stripe";
 import { getAdmin } from "@/lib/admin-auth";
@@ -59,6 +59,7 @@ export default async function BillingViewPage({ params, searchParams }: { params
         </tbody></table>
         <dl className="doc-totals">
           <div><dt>Subtotal (ex GST)</dt><dd>{formatAud(doc.subtotalCents)}</dd></div>
+          {doc.discountCents > 0 && <><div className="is-discount"><dt>{discountLabel(doc.discount)}</dt><dd>−{formatAud(doc.discountCents)}</dd></div><div><dt>Subtotal after discount</dt><dd>{formatAud(doc.subtotalCents - doc.discountCents)}</dd></div></>}
           {settings.gstRegistered && <div><dt>GST (10%)</dt><dd>{formatAud(doc.gstCents)}</dd></div>}
           <div className="is-total"><dt>Total{settings.gstRegistered ? " incl. GST" : ""}</dt><dd>{formatAud(doc.totalCents)}</dd></div>
           {!isQuote && doc.paidCents > 0 && <><div><dt>Paid</dt><dd>−{formatAud(doc.paidCents)}</dd></div><div className="is-total"><dt>Balance due</dt><dd>{formatAud(Math.max(balance, 0))}</dd></div></>}
