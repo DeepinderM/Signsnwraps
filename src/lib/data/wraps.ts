@@ -1,25 +1,24 @@
-export type VehicleModel = { slug: string; name: string; body: "Ute" | "4WD" | "SUV" | "Car"; years: number[] };
-export type VehicleMake = { slug: string; name: string; models: VehicleModel[] };
+import kitCatalogue from "./kit-catalogue.json";
 
-// Initial finder examples only. Confirm pattern-library coverage and fitment years before displaying purchasable stock.
-export const vehicleMakes: VehicleMake[] = [
-  { slug: "toyota", name: "Toyota", models: [{ slug: "hilux", name: "Hilux", body: "Ute", years: [2024, 2023, 2022, 2021] }, { slug: "landcruiser", name: "LandCruiser", body: "4WD", years: [2024, 2023, 2022] }, { slug: "rav4", name: "RAV4", body: "SUV", years: [2024, 2023, 2022] }] },
-  { slug: "ford", name: "Ford", models: [{ slug: "ranger", name: "Ranger", body: "Ute", years: [2024, 2023, 2022, 2021] }, { slug: "everest", name: "Everest", body: "4WD", years: [2024, 2023, 2022] }] },
-  { slug: "mazda", name: "Mazda", models: [{ slug: "bt-50", name: "BT-50", body: "Ute", years: [2024, 2023, 2022] }, { slug: "cx-5", name: "CX-5", body: "SUV", years: [2024, 2023, 2022] }] },
-  { slug: "isuzu", name: "Isuzu", models: [{ slug: "d-max", name: "D-MAX", body: "Ute", years: [2024, 2023, 2022] }, { slug: "mu-x", name: "MU-X", body: "4WD", years: [2024, 2023, 2022] }] },
-  { slug: "mitsubishi", name: "Mitsubishi", models: [{ slug: "triton", name: "Triton", body: "Ute", years: [2024, 2023, 2022] }, { slug: "pajero-sport", name: "Pajero Sport", body: "4WD", years: [2024, 2023, 2022] }, { slug: "outlander", name: "Outlander", body: "SUV", years: [2024, 2023, 2022] }] },
-  { slug: "nissan", name: "Nissan", models: [{ slug: "navara", name: "Navara", body: "Ute", years: [2024, 2023, 2022] }, { slug: "patrol", name: "Patrol", body: "4WD", years: [2024, 2023, 2022] }] },
-  { slug: "subaru", name: "Subaru", models: [{ slug: "forester", name: "Forester", body: "SUV", years: [2024, 2023, 2022] }, { slug: "outback", name: "Outback", body: "Car", years: [2024, 2023, 2022] }] },
-];
+export type VehicleBody = "Ute" | "4WD" | "SUV" | "Car";
+/** years is empty when kits for the model aren't split by year. */
+export type VehicleModel = { slug: string; name: string; body: VehicleBody; years: number[]; image?: string | null; kits?: number };
+/** logo: transparent brand logo for the "shop by car brand" grid, null when we don't have one. */
+export type VehicleMake = { slug: string; name: string; logo?: string | null; models: VehicleModel[] };
 
+// Every make and model we stock kits for, built from the kit catalogue (scripts/convert-kit-catalogue.py).
+export const vehicleMakes: VehicleMake[] = kitCatalogue.makes as VehicleMake[];
+
+/** Kit types, matched on the start of each kit's fitment.coverage slug (e.g. "ppf-kit-dual-cab-2024-current"). */
 export const kitCoverage = [
-  { slug: "front-protection", name: "Front protection", detail: "A focused start for high-impact areas." },
-  { slug: "full-front", name: "Full front", detail: "A broader front-end coverage option." },
-  { slug: "door-edges-cups", name: "Door edges & cups", detail: "Small-area protection for frequent contact points." },
-  { slug: "sills-tailgate", name: "Sills & tailgate", detail: "Protection for entry and loading areas." },
-  { slug: "headlights", name: "Headlights", detail: "A clear protective layer for light lenses." },
-  { slug: "full-vehicle", name: "Full vehicle", detail: "A full-body coverage consultation." },
+  { slug: "ppf-kits", prefix: "ppf-kit", name: "Full PPF kits", detail: "Pre-cut film for the panels that take the most damage, fitted at home or in the studio." },
+  { slug: "pro-kits", prefix: "pro-ppf-kit", name: "PRO kits", detail: "Wider studio-grade coverage with edges planned for a near-invisible finish." },
+  { slug: "roof-kits", prefix: "pro-roof-kit", name: "PRO roof kits", detail: "Roof protection cut around aerials and light bars." },
+  { slug: "bonnet-strips", prefix: "bonnet-strip", name: "Bonnet strips", detail: "Leading-edge protection for the bonnet, where stone chips hit first." },
+  { slug: "tailgate-kits", prefix: "tailgate-kit", name: "Tailgate kits", detail: "Protection for the tailgate and loading area." },
+  { slug: "door-cup-kits", prefix: "door-cup-kit", name: "Door cup kits", detail: "Clear film for the scratch-prone area behind the door handles." },
 ];
+export const coverageOf = (coverageSlug: string) => kitCoverage.find((item) => coverageSlug.startsWith(`${item.prefix}-`) || coverageSlug === item.prefix);
 
 export const colourFilms = [
   { name: "Gloss Black", hex: "#101010", finish: "Gloss" },

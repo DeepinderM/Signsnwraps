@@ -1,15 +1,18 @@
-import Image from "next/image";
 import Link from "next/link";
 import { fleetSides, type FleetSide } from "@/lib/data/fleet";
 import { FleetEnquiry } from "./fleet-enquiry";
 import { FaqSection } from "@/components/seo/faq-section";
 import { JsonLd } from "@/components/seo/json-ld";
 import { serviceLd } from "@/lib/seo";
+import { HeroVideo } from "@/components/media/hero-video";
+import { MediaGallery } from "@/components/media/media-gallery";
+import { media, videos } from "@/lib/data/media";
 
 // Shared layout for /signs/fleet and /wraps/fleet; content comes from fleetSides in src/lib/data/fleet.ts.
-const heroImages: Record<FleetSide, string> = {
-  signs: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1600&q=85",
-  wraps: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1600&q=85",
+// Real fleet work: signs side leans to lettering and graphics, wraps side to full wraps and livery.
+const fleetGallery: Record<FleetSide, typeof media.fleet.hawkTruck[]> = {
+  signs: [media.fleet.aClassUte, media.fleet.northStarsVan, media.projects.goldCoin, media.projects.qwikRealEstate, media.fleet.hawkRear, media.fleet.igaTrailer, media.fleet.foodlandTrailer, media.fleet.hawkTrailer],
+  wraps: [media.fleet.hawkTruck, media.wraps.hawkBDouble, media.fleet.dhillonCoaches, media.fleet.dhillonCity, media.fleet.northStarsVan, media.projects.baazVan, media.fleet.hawkPrimeMover, media.fleet.dhillonBus],
 };
 
 export function FleetPage({ side }: { side: FleetSide }) {
@@ -23,7 +26,7 @@ export function FleetPage({ side }: { side: FleetSide }) {
         <p className="body-lg">{content.intro}</p>
         <div className="fleet-actions"><a className="button button-orange" href="#fleet-book">Book a Fleet Consultation</a><a className="button fleet-outline" href="#fleet-quote">Get a Fleet Quote</a></div>
       </div>
-      <div className="sign-detail-image image-frame"><Image src={heroImages[side]} alt={content.imageAlt} fill priority sizes="(max-width: 700px) 100vw, 50vw"/></div>
+      <div className="sign-detail-image image-frame"><HeroVideo video={videos.fleet} priority /></div>
     </div></section>
 
     <section className="section"><div className="container">
@@ -42,6 +45,7 @@ export function FleetPage({ side }: { side: FleetSide }) {
       <FleetEnquiry service={content.service} workTypes={content.types} workTypesLegend={content.typesLegend}/>
     </div></section>
 
+    <MediaGallery eyebrow="FLEETS WE'VE BRANDED" title="On the road across Victoria." intro="Trucks, trailers, coaches, vans and utes branded to stay consistent across the whole fleet." images={fleetGallery[side]} />
     <FaqSection eyebrow="FLEET QUESTIONS" title="Fleet questions, answered." intro={content.intro} items={content.faqs.map(([question, answer]) => ({ question, answer }))} />
 
     <style>{`

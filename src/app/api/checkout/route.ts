@@ -4,7 +4,7 @@ import { getStripe } from "@/lib/stripe";
 import { getSessionUser } from "@/lib/auth";
 import { isFirebaseConfigured } from "@/lib/firebase/admin";
 import { productsCollection, toProduct } from "@/lib/shop/products";
-import { MAX_CART_LINES, MAX_LINE_QTY, shippingCents, FREE_SHIPPING_OVER_CENTS, type CartLine, type DeliveryMethod } from "@/lib/shop/catalog";
+import { findVariant, MAX_CART_LINES, MAX_LINE_QTY, shippingCents, splitLineId, FREE_SHIPPING_OVER_CENTS, type CartLine, type DeliveryMethod } from "@/lib/shop/catalog";
 
 function parseBody(body: unknown): { lines: CartLine[]; delivery: DeliveryMethod } | null {
   if (!body || typeof body !== "object") return null;
@@ -13,7 +13,8 @@ function parseBody(body: unknown): { lines: CartLine[]; delivery: DeliveryMethod
   const merged = new Map<string, number>();
   for (const item of items) {
     const { productId, qty } = (item ?? {}) as { productId?: unknown; qty?: unknown };
-    if (typeof productId !== "string" || !/^[a-z0-9-]{1,120}$/.test(productId) || !Number.isInteger(qty) || (qty as number) < 1) return null;
+    // "<productId>" or "<productId>~<variantKey>" for a product option.
+    if (typeof productId !== "string" || !/^[a-z0-9-]{1,120}(~[a-z0-9-]{1,120})?$/.test(productId) || !Number.isInteger(qty) || (qty as number) < 1) return null;
     merged.set(productId, (merged.get(productId) ?? 0) + (qty as number));
   }
   if ([...merged.values()].some((qty) => qty > MAX_LINE_QTY)) return null;
@@ -37,25 +38,35 @@ export async function POST(request: Request) {
   const parsed = parseBody(await request.json().catch(() => null));
   if (!parsed) return NextResponse.json({ error: "Your cart could not be read. Please refresh the page and try again." }, { status: 400 });
 
-  const docs = await productsCollection().firestore.getAll(...parsed.lines.map((line) => productsCollection().doc(line.productId)));
+  const baseIds = [...new Set(parsed.lines.map((line) => splitLineId(line.productId).productId))];
+  const baseDocs = await productsCollection().firestore.getAll(...baseIds.map((id) => productsCollection().doc(id)));
+  const byId = new Map(baseDocs.map((doc) => [doc.id, doc.exists ? toProduct(doc.id, doc.data()!) : null]));
+  // Stock is per product, so options of the same product share it.
+  const qtyByProduct = new Map<string, number>();
+  for (const line of parsed.lines) { const { productId } = splitLineId(line.productId); qtyByProduct.set(productId, (qtyByProduct.get(productId) ?? 0) + line.qty); }
   const problems: string[] = [];
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
   let subtotal = 0;
   const origin = siteOrigin(request);
 
-  parsed.lines.forEach((line, index) => {
-    const doc = docs[index];
-    const product = doc.exists ? toProduct(doc.id, doc.data()!) : null;
+  parsed.lines.forEach((line) => {
+    const { productId, variantKey } = splitLineId(line.productId);
+    const product = byId.get(productId) ?? null;
     if (!product || !product.active || product.priceCents <= 0) return problems.push(`An item in your cart is no longer available.`);
-    if (product.stock !== null && product.stock < line.qty) return problems.push(product.stock === 0 ? `${product.name} is out of stock.` : `Only ${product.stock} × ${product.name} left in stock.`);
-    subtotal += product.priceCents * line.qty;
+    // Products with options are priced from the chosen option; a product's own price is only used without options.
+    const variant = variantKey ? findVariant(product, variantKey) : undefined;
+    if (variantKey ? !variant : product.variants.length > 0) return problems.push(`Please choose the options for ${product.name} again.`);
+    const unit = variant?.priceCents ?? product.priceCents;
+    const wanted = qtyByProduct.get(productId) ?? line.qty;
+    if (product.stock !== null && product.stock < wanted) return problems.push(product.stock === 0 ? `${product.name} is out of stock.` : `Only ${product.stock} × ${product.name} left in stock.`);
+    subtotal += unit * line.qty;
     lineItems.push({
       quantity: line.qty,
       price_data: {
         currency: "aud",
-        unit_amount: product.priceCents,
+        unit_amount: unit,
         tax_behavior: "inclusive",
-        product_data: { name: product.name, metadata: { productId: product.id, category: product.category }, ...(product.imageUrl?.startsWith("https://") ? { images: [product.imageUrl] } : {}) },
+        product_data: { name: variant ? `${product.name} · ${variant.label}` : product.name, metadata: { productId: line.productId, category: product.category }, ...(product.imageUrl?.startsWith("https://") ? { images: [product.imageUrl] } : {}) },
       },
     });
   });

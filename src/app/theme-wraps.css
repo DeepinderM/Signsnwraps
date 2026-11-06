@@ -1,0 +1,92 @@
+/*
+ * Wraps & PPF section look, so moving from Signs (ice blue) to Wraps feels like a different space.
+ * Applies only when the page contains .wraps-zone (src/app/wraps/layout.tsx); Signs and every other page
+ * keep the light theme.
+ *   Content: neutral light — page #F3F4F6, panels #E9EBEE, white cards, charcoal text (no blue tint)
+ *   Frame:   neutral charcoal — header, heroes, feature bands, call-to-action panels and footer
+ *            #1F242B / panel #2A3038 / raised #353C46, white text
+ *   Electric Blue #03AAFA stays the accent for buttons and highlights.
+ * Dark parts work by redefining the theme's colour variables on those elements, so everything inside
+ * them (headings, text, cards, inputs) follows automatically.
+ */
+
+/* ---------- Light, neutral content ---------- */
+body:has(.wraps-zone){
+  --ice:#F3F4F6;--mist:#E9EBEE;--canvas:#F3F4F6;
+  --ink:#1C2129;--ink-body:#4B5563;--ink-muted:#6B7280;--ink-soft:#4B5563;--charcoal:#1C2129;--muted:#6B7280;
+  --line:#E2E5E9;--surface-line:rgba(28,33,41,.08);
+  --electric-blue-ink:#0270A8;--electric-blue-display:#0284C7;
+  --glass:rgba(31,36,43,.86);
+  --shadow-1:0 1px 2px rgba(28,33,41,.05),0 6px 16px -8px rgba(28,33,41,.12);
+  --shadow-2:0 2px 6px rgba(28,33,41,.06),0 20px 40px -20px rgba(28,33,41,.22);
+  --shadow-3:0 26px 60px -36px rgba(28,33,41,.35);
+  background:#F3F4F6;color:var(--ink);
+}
+body:has(.wraps-zone) .wraps-zone :where(section){border-color:rgba(28,33,41,.06)!important}
+
+/* ---------- Charcoal frame: shared dark palette ---------- */
+body:has(.wraps-zone) :is(.site-header,.mobile-menu,.footer),
+body:has(.wraps-zone) .wraps-zone :is(.wraps-hero,.catalog-hero,.collection-hero,.wrap-service-hero,.sign-detail-hero,.booking-intro,.colour-strip,.fleet-process-section,.consult-cta,section.dark,.sign-brand-story){
+  --ice:#262B33;--mist:#262B33;--canvas:#1F242B;
+  --ink:#F5F7FA;--ink-body:#C9D0DA;--ink-muted:#9AA3AF;--ink-soft:#C9D0DA;--charcoal:#F5F7FA;--muted:#9AA3AF;
+  --line:rgba(255,255,255,.12);--surface-line:rgba(255,255,255,.1);
+  --electric-blue-ink:#5CCBFF;--electric-blue-display:#4CC3FF;
+  color:var(--ink);color-scheme:dark;
+}
+
+/* Header: charcoal glass, light links (the logo switches to white in header.tsx) */
+body:has(.wraps-zone) .site-header{box-shadow:0 18px 40px -24px rgba(17,20,25,.55)}
+body:has(.wraps-zone) .site-header::before{background:rgba(31,36,43,.9);border-color:rgba(255,255,255,.08)}
+body:has(.wraps-zone) .desktop-nav{border-top-color:rgba(255,255,255,.1)}
+body:has(.wraps-zone) :is(.desktop-nav a,.icon-link){color:#F5F7FA}
+body:has(.wraps-zone) :is(.desktop-nav a,.icon-link):hover{color:#5CCBFF}
+body:has(.wraps-zone) .menu-toggle{background:#2A3038;border-color:rgba(255,255,255,.18)}
+body:has(.wraps-zone) .menu-toggle span{background:#F5F7FA}
+body:has(.wraps-zone) .mobile-menu{background:#1F242B;color:#F5F7FA}
+body:has(.wraps-zone) :is(.menu-close,.mobile-menu-account a,.side-switch>a){background:#2A3038;border-color:rgba(255,255,255,.12);color:#F5F7FA}
+body:has(.wraps-zone) .mobile-menu-links a{color:#F5F7FA;border-bottom-color:rgba(255,255,255,.1)}
+body:has(.wraps-zone) .nav-switch{background:#2A3038!important;border-color:rgba(255,255,255,.1)!important}
+body:has(.wraps-zone) .nav-switch a{color:#C9D0DA}
+body:has(.wraps-zone) .nav-switch a.active{background:var(--electric-blue)!important;color:#1C2129!important}
+body:has(.wraps-zone) .side-switch>a.active{background:#353C46!important;border-color:var(--electric-blue)!important;color:#fff}
+
+/* Section switch: the active card is charcoal (Signs uses navy) */
+body:has(.wraps-zone) .explore-card.is-active{background:#1F242B!important;border-color:#1F242B!important;box-shadow:inset 0 -3px 0 var(--electric-blue),var(--shadow-2)}
+body:has(.wraps-zone) .explore-card.is-active .explore-icon{background:rgba(3,170,250,.18);color:var(--electric-blue)}
+body:has(.wraps-zone) .explore-card.is-active .explore-cta{color:#5CCBFF!important}
+
+/* Heroes and feature bands: charcoal with a soft blue glow */
+body:has(.wraps-zone) .wraps-zone :is(.wraps-hero,.catalog-hero,.collection-hero,.wrap-service-hero,.sign-detail-hero,.booking-intro){
+  background:radial-gradient(110% 130% at 88% -10%,rgba(3,170,250,.14),transparent 55%),#1F242B!important;border-color:rgba(255,255,255,.06)!important
+}
+body:has(.wraps-zone) .wraps-zone :is(.colour-strip,.fleet-process-section,.consult-cta,section.dark,.sign-brand-story){background:#262B33!important;border:0;box-shadow:var(--shadow-3)}
+body:has(.wraps-zone) .footer{background:#1A1E24!important}
+
+/* Cards, forms and inputs inside the dark parts */
+body:has(.wraps-zone) .wraps-zone :is(.wraps-hero,.catalog-hero,.collection-hero,.wrap-service-hero,.sign-detail-hero,.booking-intro,.colour-strip,.fleet-process-section,.consult-cta,section.dark) :is(.fitment-finder,.booking-card,.quote-form,.image-frame,article,details,.faq-answer-lead){
+  background:#2A3038!important;border-color:rgba(255,255,255,.1)!important;color:var(--ink)
+}
+body:has(.wraps-zone) .wraps-zone :is(.wraps-hero,.catalog-hero,.collection-hero,.wrap-service-hero,.sign-detail-hero,.booking-intro,.colour-strip,.fleet-process-section,.consult-cta,section.dark) :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
+  background:#353C46!important;color:#F5F7FA!important;border-color:rgba(255,255,255,.18)!important
+}
+body:has(.wraps-zone) .wraps-zone :is(.wraps-hero,.catalog-hero,.collection-hero,.wrap-service-hero,.sign-detail-hero,.booking-intro,.colour-strip,.fleet-process-section,.consult-cta,section.dark) :is(input,textarea)::placeholder{color:#9AA3AF}
+body:has(.wraps-zone) .wraps-zone :is(.wraps-hero,.catalog-hero,.collection-hero,.wrap-service-hero,.sign-detail-hero,.booking-intro,.colour-strip,.fleet-process-section,.consult-cta,section.dark) :is(.coverage-count,.project-meta span,.booking-note span,.wizard-footnote){color:#9AA3AF!important}
+
+/* Buttons: Electric Blue keeps dark text; outline buttons in the dark parts go light-on-dark */
+body:has(.wraps-zone) :is(.button-orange,.header-book){color:#1C2129!important}
+body:has(.wraps-zone) .wraps-zone :is(.wraps-hero,.catalog-hero,.collection-hero,.wrap-service-hero,.sign-detail-hero,.booking-intro,.colour-strip,.fleet-process-section,.consult-cta,section.dark) :is(.button-light,.hero-secondary,.button[class*="-outline"]){background:transparent!important;border-color:rgba(255,255,255,.3)!important;color:#F5F7FA!important}
+body:has(.wraps-zone) .wraps-zone :is(.wraps-hero,.catalog-hero,.collection-hero,.wrap-service-hero,.sign-detail-hero,.booking-intro,.colour-strip,.fleet-process-section,.consult-cta,section.dark) :is(.button-light,.hero-secondary,.button[class*="-outline"]):hover{background:rgba(255,255,255,.1)!important;border-color:var(--electric-blue)!important}
+body:has(.wraps-zone) .finder-number{color:#1C2129!important}
+
+/* Light content: neutral greys for the few elements the light theme tints blue or navy */
+body:has(.wraps-zone) :is(.kit-categories>a:hover,.service-entry-grid>a:hover,.shop-filters a[aria-current=page]){background:#1F242B!important;border-color:#1F242B!important;color:#fff}
+body:has(.wraps-zone) .compare-table thead th{background:#1F242B}
+body:has(.wraps-zone) .installer-map{background-color:#1F242B!important}
+body:has(.wraps-zone) .wraps-zone :is(.shop-image,.kit-product-image){background:#ECEEF1!important}
+body:has(.wraps-zone) .crumbs :is([aria-current],li:last-child,li:last-child *){color:var(--ink)!important}
+
+/* Installer sign-up: service checkboxes were drawn at full field size */
+body:has(.wraps-zone) .quote-checks input[type=checkbox]{width:20px!important;height:20px!important;min-height:0!important;flex:none;margin:0;padding:0;accent-color:var(--electric-blue)}
+body:has(.wraps-zone) .quote-checks label{display:flex;align-items:center;gap:10px}
+body:has(.wraps-zone) .wraps-zone .colour-catalog-light article p{color:var(--ink-muted)!important}
+body:has(.wraps-zone) .wraps-zone :is(.catalog-hero,.booking-intro,.sign-detail-hero) .installer-regions li{background:#2A3038!important;border-color:rgba(255,255,255,.14)!important;color:#F5F7FA!important}

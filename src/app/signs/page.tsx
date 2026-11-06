@@ -2,15 +2,27 @@ import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import Image from "next/image";
 import Link from "next/link";
-import { services, projects, industries } from "@/lib/data/content";
-import { ServiceCard, ProjectCard, ConsultationCTA } from "@/components/sections/blocks";
+import { industries } from "@/lib/data/content";
+import { ConsultationCTA } from "@/components/sections/blocks";
+import { HeroVideo } from "@/components/media/hero-video";
+import { MediaGallery } from "@/components/media/media-gallery";
+import { media, videos } from "@/lib/data/media";
 import { BrandStorySection } from "@/components/sections/brand-story";
 import { ProudPartners } from "@/components/sections/proud-partners";
 import { FaqSection } from "@/components/seo/faq-section";
 
 export const metadata: Metadata = pageMetadata({ title: "Signage & Printing Melbourne", description: "Shopfront and building signs, printing, neon and fleet signage, planned, made and installed by Signsnwraps in Laverton North, Melbourne. Get expert advice.", path: "/signs" });
 
-const signServices = services.filter((service) => ["signage", "printing"].includes(service.slug));
+// "One partner for the whole picture": every Signs & Print service with a real example.
+const pillars = [
+  { href: "/signs/signage", title: "Commercial signage", text: "Building, 3D and illuminated signs.", image: media.signage.carpro },
+  { href: "/signs/shopfronts", title: "Shopfronts", text: "Fascia signs, window graphics and entries.", image: media.shopfronts.dansEntry },
+  { href: "/signs/printing", title: "Banners & printing", text: "Banners, wall graphics and promotional print.", image: media.signage.primeWall },
+  { href: "/signs/neon", title: "Neon & illuminated", text: "LED neon, lightboxes and lit letters.", image: media.neon.laCocina },
+  { href: "/signs/fleet", title: "Fleet signage", text: "Lettering and graphics for every vehicle.", image: media.fleet.aClassUte },
+  { href: "/signs/projects", title: "Projects", text: "Finished work across Melbourne.", image: media.shopfronts.sahibESwad },
+];
+const standOut = [media.projects.bellevue, media.shopfronts.cosmeticLaneway, media.projects.friendlyCatering, media.projects.goldCoin, media.shopfronts.sahibESwad, media.projects.skRoyalHomes, media.signage.stellaPizza, media.signage.yourChoice];
 const partnerOrganizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -40,7 +52,7 @@ export default function SignsHomePage() {
           <div className="signs-trust"><span>IDEA</span><i>→</i><span>PLANNING</span><i>→</i><span>PRODUCTION</span><i>→</i><span>INSTALLATION</span></div>
         </div>
         <div className="signs-hero-image image-frame">
-          <Image src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1500&q=85" alt="Modern commercial workspace featuring brand and wayfinding signage" fill priority sizes="(max-width: 700px) 100vw, 52vw"/>
+          <HeroVideo video={videos.signsReel} priority />
           <span>COMMERCIAL BRAND PRESENTATION</span>
         </div>
       </div>
@@ -54,7 +66,10 @@ export default function SignsHomePage() {
           <div><span className="eyebrow">THE SIGNS & PRINT PILLARS</span><h2 className="heading-lg">One partner for<br/>the whole picture.</h2></div>
           <p className="body-lg">From shopfronts and offices to events and multi-site rollouts, get expert advice before production begins.</p>
         </div>
-        <div className="grid-2 signs-service-grid">{signServices.map((service) => <ServiceCard key={service.slug} service={service} hrefPrefix="/signs"/>)}</div>
+        <ul className="pillar-grid">{pillars.map((pillar) => <li key={pillar.href}><Link href={pillar.href} className="pillar-card">
+          <span className="pillar-image"><Image src={pillar.image.src} alt={pillar.image.alt} fill sizes="(max-width: 640px) 100vw, (max-width: 1000px) 50vw, 33vw" /></span>
+          <span className="pillar-text"><b>{pillar.title}</b><small>{pillar.text}</small><i aria-hidden>→</i></span>
+        </Link></li>)}</ul>
         <div className="pillar-links"><Link href="/signs/signage">Explore custom signage</Link><Link href="/signs/printing">Explore print & banners</Link><Link href="/signs/shopfronts">Plan a storefront</Link><Link href="/signs/fleet">Fleet signage</Link></div>
       </div>
     </section>
@@ -62,15 +77,7 @@ export default function SignsHomePage() {
 
     <BrandStorySection />
 
-    <section className="section signs-projects">
-      <div className="container">
-        <div className="section-head">
-          <div><span className="eyebrow">SELECTED PROJECTS</span><h2 className="heading-lg">Built to stand out.</h2></div>
-          <Link className="text-link" href="/work">View projects</Link>
-        </div>
-        <div className="grid-2">{projects.filter((project) => ["Commercial signage", "Retail"].includes(project.category)).slice(0, 2).map((project) => <ProjectCard key={project.slug} project={project}/>)}</div>
-      </div>
-    </section>
+    <MediaGallery eyebrow="SELECTED PROJECTS" title="Built to stand out." images={standOut} link={{ href: "/signs/projects", label: "View projects" }} />
 
     <section className="section sign-industries">
       <div className="container industries-strip">

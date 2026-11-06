@@ -13,3 +13,11 @@ ui-debug.log
 .emulator-data
 .vercel
 *firebase-adminsdk*.json
+
+# Original media (large); the site uses the compressed copies in public/media built by scripts/build-media.py
+Assets/Vedio/
+Assets/Web-Images-pages/
+Assets/Wraps-products/
+# Reference spreadsheets that stay local
+docs/bushwrapz-catalogue.xlsx
+docs/Order - *.xlsx

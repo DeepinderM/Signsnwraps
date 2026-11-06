@@ -3,7 +3,7 @@
 import { startTransition, useActionState, useState } from "react";
 import Image from "next/image";
 import { productCategories, type Product } from "@/lib/shop/catalog";
-import { kitCoverage, vehicleMakes } from "@/lib/data/wraps";
+import { vehicleMakes } from "@/lib/data/wraps";
 import { saveProduct, type ProductFormState } from "./actions";
 
 export function ProductForm({ product }: { product?: Product }) {
@@ -28,10 +28,10 @@ export function ProductForm({ product }: { product?: Product }) {
       {category === "vehicle-kit" && <>
         <div className="field"><label htmlFor="make">Vehicle make</label><select id="make" name="make" value={make} onChange={(event) => setMake(event.target.value)} required><option value="">Choose…</option>{vehicleMakes.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}</select></div>
         <div className="field"><label htmlFor="model">Model</label><select id="model" name="model" defaultValue={product?.fitment?.model ?? ""} key={make} required><option value="">Choose…</option>{models.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}</select></div>
-        <div className="field"><label htmlFor="coverage">Coverage</label><select id="coverage" name="coverage" defaultValue={product?.fitment?.coverage ?? ""} required><option value="">Choose…</option>{kitCoverage.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}</select></div>
+        <div className="field"><label htmlFor="coverage">Kit ID within the model</label><input id="coverage" name="coverage" defaultValue={product?.fitment?.coverage ?? ""} required pattern="[a-z0-9-]+" placeholder="e.g. ppf-kit-dual-cab-2024-current" /><small>Starts with ppf-kit, pro-ppf-kit, bonnet-strip, tailgate-kit or door-cup-kit. Used in the kit URL.</small></div>
       </>}
       <div className="field form-wide"><label htmlFor="description">Description</label><textarea id="description" name="description" maxLength={2000} defaultValue={product?.description} /></div>
-      <div className="field"><label htmlFor="price">Price (AUD, incl. GST)</label><input id="price" name="price" type="number" min="0.5" step="0.01" required defaultValue={product ? (product.priceCents / 100).toFixed(2) : ""} /></div>
+      <div className="field"><label htmlFor="price">Price (AUD, incl. GST)</label><input id="price" name="price" type="number" min="0.5" step="0.01" required defaultValue={product ? (product.priceCents / 100).toFixed(2) : ""} />{product && product.variants.length > 0 && <small>This kit has {product.variants.length} option prices (film, coverage…) set by the kit catalogue import; this is its lowest &ldquo;from&rdquo; price.</small>}</div>
       <div className="field"><label htmlFor="stock">Stock on hand</label><input id="stock" name="stock" type="number" min="0" step="1" defaultValue={product?.stock ?? ""} placeholder="Blank = made to order" /></div>
       <div className="field"><label htmlFor="sortOrder">Sort order</label><input id="sortOrder" name="sortOrder" type="number" step="1" defaultValue={product?.sortOrder ?? 0} /></div>
       <div className="field"><label htmlFor="image">Photo (JPG, PNG or WebP, max 4 MB)</label><input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp" />{product?.imageUrl && <div className="admin-image"><Image src={product.imageUrl} alt="" width={120} height={90} /><label><input type="checkbox" name="removeImage" /> Remove photo</label></div>}</div>

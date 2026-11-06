@@ -5,7 +5,7 @@ import { FieldValue, type DocumentData } from "firebase-admin/firestore";
 import { db } from "@/lib/firebase/admin";
 import { getStripe } from "@/lib/stripe";
 import type { DeliveryMethod, Order, OrderAddress, OrderStatus } from "./catalog";
-import { orderStatuses } from "./catalog";
+import { orderStatuses, splitLineId } from "./catalog";
 import { PRODUCTS_TAG, productsCollection } from "./products";
 
 const ordersCollection = () => db().collection("orders");
@@ -45,13 +45,15 @@ export async function fulfilCheckoutSession(sessionId: string) {
 
   const created = await db().runTransaction(async (tx) => {
     if ((await tx.get(orderRef)).exists) return false;
-    const productRefs = [...new Set(items.map((item) => item.productId).filter(Boolean))].map((id) => productsCollection().doc(id));
+    // Line ids can carry an option ("<id>~<option>"); stock lives on the product itself.
+    const baseOf = (id: string) => splitLineId(id).productId;
+    const productRefs = [...new Set(items.map((item) => baseOf(item.productId)).filter(Boolean))].map((id) => productsCollection().doc(id));
     const productDocs = productRefs.length ? await tx.getAll(...productRefs) : [];
     const stockIssues: string[] = [];
     for (const doc of productDocs) {
       const stock = doc.get("stock");
       if (!doc.exists || !Number.isInteger(stock)) continue;
-      const qty = items.filter((item) => item.productId === doc.id).reduce((sum, item) => sum + item.qty, 0);
+      const qty = items.filter((item) => baseOf(item.productId) === doc.id).reduce((sum, item) => sum + item.qty, 0);
       if (stock < qty) stockIssues.push(`${doc.get("name") ?? doc.id}: ordered ${qty}, only ${stock} in stock`);
       tx.update(doc.ref, { stock: Math.max(0, stock - qty), updatedAt: FieldValue.serverTimestamp() });
     }

@@ -17,6 +17,9 @@ const firebasePublicEnv = Object.fromEntries(Object.entries({
 const nextConfig: NextConfig = {
   env: firebasePublicEnv,
   images: {
+    // AVIF first (smallest), WebP otherwise; resized copies are kept for 30 days instead of being remade.
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "firebasestorage.googleapis.com" },
@@ -25,6 +28,8 @@ const nextConfig: NextConfig = {
     ],
     localPatterns: [
       { pathname: "/_next/static/media/**" },
+      // Real work photos built by scripts/build-media.py.
+      { pathname: "/media/**" },
     ],
   },
   experimental: {
@@ -48,7 +53,12 @@ const nextConfig: NextConfig = {
   // Private pages (customer quotes/invoices and their PDFs, admin, accounts, APIs) are never indexed, even if a link leaks.
   async headers() {
     const noindex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
-    return ["/billing/:path*", "/admin/:path*", "/account/:path*", "/api/:path*"].map((source) => ({ source, headers: noindex }));
+    // Photos, videos and posters in /media: browsers keep them a week and refresh quietly after that.
+    const mediaCache = [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=2592000" }];
+    return [
+      ...["/billing/:path*", "/admin/:path*", "/account/:path*", "/api/:path*"].map((source) => ({ source, headers: noindex })),
+      { source: "/media/:path*", headers: mediaCache },
+    ];
   },
   turbopack: { root: path.resolve(process.cwd()) },
 };

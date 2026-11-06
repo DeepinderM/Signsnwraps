@@ -5,7 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import brandLogo from "../../../Assets/logo-black-blue.png";
+import brandLogoWhite from "../../../Assets/logo-white-blue.png";
 import lionIcon from "../../../Assets/lion-icon-black-blue.png";
+import lionIconWhite from "../../../Assets/lion-icon-white-blue.png";
 import { Car, Signpost } from "lucide-react";
 import { useCart } from "@/lib/shop/cart-store";
 
@@ -40,6 +42,7 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const cartCount = useCart().reduce((sum, item) => sum + item.qty, 0);
   const pathname = usePathname();
+  const wrapsSection = pathname.startsWith("/wraps");
   const isWraps = pathname.startsWith("/wraps") || pathname.startsWith("/trade") || pathname.startsWith("/account");
   const isSigns = pathname.startsWith("/signs");
   const nav = isWraps ? wrapsNav : signsNav;
@@ -87,8 +90,9 @@ export function Header() {
         <div className="header-top">
           <Link className="brand" href="/" aria-label="Signs N' Wraps home">
             {/* Light header: black + blue logo (master: Assets/Logos/logo final-black-blue.png); below the 150px minimum, use the lion icon instead. */}
-            <Image src={brandLogo} alt="Signs N' Wraps" priority className="brand-image" sizes="170px" />
-            <Image src={lionIcon} alt="" priority className="brand-icon" sizes="48px" />
+            {/* The Wraps section is dark: white + blue logo there. */}
+            <Image src={wrapsSection ? brandLogoWhite : brandLogo} alt="Signs N' Wraps" priority className="brand-image" sizes="170px" />
+            <Image src={wrapsSection ? lionIconWhite : lionIcon} alt="" priority className="brand-icon" sizes="48px" />
           </Link>
           {/* Desktop: compact section switch centred in the top row once scrolled (hidden + inert at the top of the page) */}
           <div className="nav-switch-top" inert={!showSwitch}>{navSwitch}</div>

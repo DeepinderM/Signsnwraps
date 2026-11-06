@@ -21,6 +21,10 @@ export function toProduct(id: string, data: DocumentData): Product {
     sample: data.sample === true,
     sortOrder: Number.isFinite(data.sortOrder) ? data.sortOrder : 0,
     fitment,
+    years: Array.isArray(data.years) ? data.years.filter((year: unknown): year is number => Number.isInteger(year)) : [],
+    images: Array.isArray(data.images) ? data.images.filter((url: unknown): url is string => typeof url === "string") : [],
+    options: Array.isArray(data.options) ? data.options.filter((option: { name?: unknown; values?: unknown }) => typeof option?.name === "string" && Array.isArray(option.values)) : [],
+    variants: Array.isArray(data.variants) ? data.variants.filter((variant: { key?: unknown; priceCents?: unknown }) => typeof variant?.key === "string" && Number.isInteger(variant.priceCents) && (variant.priceCents as number) > 0) : [],
     updatedAt: typeof data.updatedAt?.toMillis === "function" ? data.updatedAt.toMillis() : 0,
   };
 }

@@ -5,10 +5,12 @@ import { WrapsHero, ThreePaths, CoverageGrid, ColourFilmStrip, HowKitWorks, Trus
 import { ProjectCard } from "@/components/sections/blocks";
 import { projects } from "@/lib/data/content";
 import { FaqSection } from "@/components/seo/faq-section";
+import { CarBrandGrid } from "@/components/wraps/car-brand-grid";
 export const metadata: Metadata = pageMetadata({ title: "Vehicle Wraps, PPF & DIY Kits Melbourne", description: "Vehicle wraps, paint protection film and pre-cut DIY PPF kits from the Signsnwraps studio in Laverton North, Melbourne. Fit it yourself or let us fit it.", path: "/wraps" });
 export default function WrapsHomePage(){return <>
   <WrapsHero/>
   <ThreePaths/>
+  <CarBrandGrid/>
   <CoverageGrid/>
   <ColourFilmStrip/>
   <section className="section wraps-work"><div className="container"><div className="section-head"><div><span className="eyebrow">LAVERTON NORTH STUDIO</span><h2 className="heading-lg">Real installs.<br/>Real protection.</h2></div><Link className="text-link" href="/work">View project stories</Link></div><div className="grid-2">{projects.filter((project)=>["PPF","Vehicle wraps"].includes(project.category)).slice(0,2).map((project)=><ProjectCard key={project.slug} project={project} featured/>)}</div><p className="wraps-preview-note">Project imagery and examples shown are illustrative until replaced with approved Signsnwraps studio work.</p></div></section>

@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { services, industries, locations, projects, serviceHomes } from "@/lib/data/content";
 import { kitCoverage, kitCategories, vehicleMakes } from "@/lib/data/wraps";
 import { getStorefrontProducts } from "@/lib/shop/products";
+import { productHref } from "@/lib/shop/catalog";
 import { absoluteUrl } from "@/lib/seo";
 
 // Only canonical, indexable URLs: no year variants (they canonicalise to the model page),
@@ -22,9 +23,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
   const kits = [
     ...kitCategories.map((item) => `/wraps/kits/${item.slug}`), ...kitCoverage.map((item) => `/wraps/kits/${item.slug}`),
-    ...vehicleMakes.flatMap((make) => make.models.flatMap((model) => [`/wraps/kits/${make.slug}/${model.slug}`, ...kitCoverage.map((kit) => `/wraps/kits/${make.slug}/${model.slug}/${kit.slug}`)])),
+    ...vehicleMakes.flatMap((make) => [`/wraps/kits/${make.slug}`, ...make.models.map((model) => `/wraps/kits/${make.slug}/${model.slug}`)]),
   ];
-  // Non-kit products have their own shop pages; vehicle kits are covered by the kit URLs above.
-  const products = ((await getStorefrontProducts()) ?? []).filter((product) => !product.fitment).map((product) => `/wraps/shop/${product.id}`);
+  // Every live product: vehicle kits under the kit finder, everything else on its shop page.
+  const products = ((await getStorefrontProducts()) ?? []).map((product) => productHref(product));
   return [...new Set([...fixed.map((path) => path || "/"), ...content, ...kits, ...products])].map((path) => ({ url: absoluteUrl(path), changeFrequency: path.startsWith("/wraps/shop") || path.startsWith("/wraps/kits") ? "weekly" : "monthly", priority: priority(path) }));
 }

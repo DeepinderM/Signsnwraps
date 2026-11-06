@@ -256,3 +256,70 @@ a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit}b
 .acp-sheets{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
 .acp-sheet{display:grid;gap:4px;align-content:start}.acp-sheet svg{max-width:100%;height:auto;display:block}
 .acp-sheet p{margin:0;font-size:12.5px;color:#13233A}.acp-sheet small{display:block;color:#6b7684;font-size:11.5px}
+/* Real-work galleries (src/components/media/media-gallery.tsx) and background videos (hero-video.tsx) */
+.media-gallery-section{background:#fff}.media-gallery-section.is-plain{background:transparent}
+.media-gallery-side{display:grid;gap:14px;justify-items:start;max-width:440px}
+.media-gallery{list-style:none;margin:30px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.media-gallery figure{margin:0}
+.media-gallery-frame{position:relative;aspect-ratio:1;border-radius:18px;overflow:hidden;background:#e9edf2}
+.media-gallery-frame img{object-fit:cover;transition:transform .5s ease}
+.media-gallery li:hover .media-gallery-frame img{transform:scale(1.04)}
+.media-gallery figcaption{margin-top:10px;font-size:13px;font-weight:700;letter-spacing:-.01em;color:var(--ink,#13233A)}
+.media-gallery-video{grid-row:span 2}.media-gallery-video figure{height:100%;display:flex;flex-direction:column}.media-gallery-video .media-gallery-frame{aspect-ratio:auto;flex:1;min-height:320px}
+.hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+@media(max-width:1000px){.media-gallery{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:640px){.media-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.media-gallery figcaption{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.media-gallery-frame img{transition:none}}
+/* Signs: "One partner for the whole picture" service cards */
+.pillar-grid{list-style:none;margin:34px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.pillar-card{display:block;border-radius:22px;overflow:hidden;background:#fff;border:1px solid rgba(19,35,58,.08);box-shadow:var(--shadow-1,0 6px 16px -8px rgba(0,0,0,.12));transition:transform .25s,box-shadow .25s}
+.pillar-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-2,0 20px 40px -20px rgba(0,0,0,.25))}
+.pillar-image{position:relative;display:block;aspect-ratio:4/3;background:#e9edf2}.pillar-image img{object-fit:cover}
+.pillar-text{position:relative;display:grid;gap:4px;padding:16px 46px 18px 18px}.pillar-text b{font-size:19px;letter-spacing:-.03em;color:var(--ink,#13233A)}.pillar-text small{font-size:13px;color:var(--ink-body,#4A5568)}
+.pillar-text i{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-style:normal;font-weight:800;color:var(--electric-blue-ink,#026BA3)}
+@media(max-width:1000px){.pillar-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.pillar-grid{grid-template-columns:1fr}}
+/* Shop: product options, gallery */
+.product-buy{display:grid;gap:16px;margin:8px 0 4px}
+.product-option{border:0;margin:0;padding:0;display:grid;gap:8px}.product-option legend{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;color:var(--ink-muted,#5A6779)}
+.product-option>div{display:flex;flex-wrap:wrap;gap:8px}
+.product-option label{position:relative;display:inline-flex;align-items:center;padding:10px 16px;border:1px solid rgba(19,35,58,.18);border-radius:999px;font-size:13.5px;font-weight:700;cursor:pointer;background:#fff;color:var(--ink,#13233A);transition:border-color .15s,background .15s}
+.product-option label:hover{border-color:var(--electric-blue,#03AAFA)}
+.product-option label.is-on{background:var(--ink,#13233A);border-color:var(--ink,#13233A);color:#fff}
+.product-option label.is-off{opacity:.4;cursor:not-allowed;text-decoration:line-through}
+.product-option input{position:absolute;opacity:0;pointer-events:none}.product-option label:has(input:focus-visible){outline:2px solid var(--electric-blue,#03AAFA);outline-offset:2px}
+.product-gallery{display:grid;gap:10px}.product-gallery-main{position:relative;aspect-ratio:1;border-radius:22px;overflow:hidden;background:#fff}.product-gallery-main img{object-fit:contain}
+.product-gallery-main.is-empty{display:grid;place-items:center;background:linear-gradient(135deg,#eef2f7,#dfe7f1)}.product-gallery-main.is-empty span{font-weight:800;letter-spacing:.16em;text-transform:uppercase;font-size:12px;color:#5A6779}
+.product-gallery-thumbs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.product-gallery-thumbs button{position:relative;flex:0 0 72px;height:72px;border-radius:12px;overflow:hidden;border:2px solid transparent;background:#fff;padding:0;cursor:pointer}
+.product-gallery-thumbs button img{object-fit:contain}.product-gallery-thumbs button.is-on{border-color:var(--electric-blue,#03AAFA)}
+/* Kit finder: makes and models */
+.make-tiles,.make-models{list-style:none;margin:26px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.make-models{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.make-tiles a,.make-models a{position:relative;display:grid;gap:3px;padding:16px 40px 16px 18px;border-radius:16px;background:#fff;border:1px solid rgba(19,35,58,.1);box-shadow:var(--shadow-1,none);transition:border-color .2s,transform .2s}
+.make-tiles a:hover,.make-models a:hover{border-color:var(--electric-blue,#03AAFA);transform:translateY(-2px)}
+.make-tiles b,.make-models b{font-size:16px;letter-spacing:-.02em;color:var(--ink,#13233A)}.make-tiles small,.make-models small{font-size:12.5px;color:var(--ink-muted,#5A6779)}
+.make-models i{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-style:normal;font-weight:800;color:var(--electric-blue-ink,#026BA3)}
+.kit-group+.kit-group{margin-top:56px}
+.shop-choose{display:flex;justify-content:center}
+/* Shop by car brand (car-brand-grid.tsx) and choose your car (make pages) */
+.car-brand-grid{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+.car-brand{display:grid;grid-template-rows:auto auto;height:100%;border-radius:18px;background:#fff;border:1px solid rgba(19,35,58,.1);box-shadow:var(--shadow-1,none);overflow:hidden;transition:border-color .2s,transform .2s,box-shadow .2s}
+.car-brand:hover{border-color:var(--electric-blue,#03AAFA);transform:translateY(-3px);box-shadow:var(--shadow-2,none)}
+.car-brand-logo{position:relative;display:grid;place-items:center;aspect-ratio:16/9;background:#fff;container-type:inline-size;overflow:hidden}
+/* Logos sit on white tiles: multiply hides any off-white box baked into a logo file. */
+.car-brand-logo img{position:absolute;inset:12% 14%;width:72%;height:76%;object-fit:contain;mix-blend-mode:multiply;filter:brightness(1.05) contrast(1.08)}
+.car-brand-word{font-weight:900;font-size:min(24px,15cqw);letter-spacing:.03em;text-transform:uppercase;color:#13233A;padding:0 8px;text-align:center;line-height:1}
+.car-brand-text{display:grid;gap:2px;padding:10px 14px 14px;border-top:1px solid rgba(19,35,58,.08);text-align:center}
+.car-brand-text b{font-size:15px;color:var(--ink,#13233A)}.car-brand-text small{font-size:12px;color:var(--ink-muted,#5A6779)}
+.car-models{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.car-model{display:grid;height:100%;border-radius:20px;background:#fff;border:1px solid rgba(19,35,58,.1);box-shadow:var(--shadow-1,none);overflow:hidden;transition:border-color .2s,transform .2s}
+.car-model:hover{border-color:var(--electric-blue,#03AAFA);transform:translateY(-3px)}
+.car-model-image{position:relative;aspect-ratio:4/3;background:#fff}.car-model-image img{object-fit:contain}
+.car-model-image.is-empty{display:grid;place-items:center;background:linear-gradient(135deg,#eef2f7,#dfe7f1)}.car-model-image.is-empty span{font-weight:900;font-size:22px;letter-spacing:.02em;color:#5A6779;text-align:center;padding:0 16px}
+.car-model-text{position:relative;display:grid;gap:3px;padding:14px 44px 16px 16px;border-top:1px solid rgba(19,35,58,.08)}
+.car-model-text b{font-size:17px;letter-spacing:-.02em;color:var(--ink,#13233A)}.car-model-text small{font-size:12.5px;color:var(--ink-muted,#5A6779)}
+.car-model-text i{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-style:normal;font-weight:800;color:var(--electric-blue-ink,#026BA3)}
+.make-hero-logo{display:block;width:180px;max-width:50%;margin-bottom:18px;background:#fff;border-radius:16px;padding:10px 16px}
+.make-hero-logo img{width:100%;height:auto;display:block}
+@media(max-width:560px){.car-brand-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.car-models{grid-template-columns:1fr}}

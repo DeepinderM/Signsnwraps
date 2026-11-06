@@ -3,6 +3,7 @@ import "@fontsource-variable/inter";
 import "./globals.css";
 import "./spatial.css";
 import "./theme-light.css";
+import "./theme-wraps.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { AnalyticsTracker } from "@/components/analytics-tracker";

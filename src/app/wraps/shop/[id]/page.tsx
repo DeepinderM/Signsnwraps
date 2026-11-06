@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AddToCart } from "@/components/shop/add-to-cart";
-import { ProductImage } from "@/components/shop/product-card";
+import { ProductBuy } from "@/components/shop/product-buy";
+import { ProductGallery } from "@/components/shop/product-gallery";
 import { StoreUnavailable, TestModeBanner } from "@/components/shop/store-notice";
 import { ConsultationCTA } from "@/components/sections/blocks";
 import { getStorefrontProduct } from "@/lib/shop/products";
@@ -33,17 +33,17 @@ export default async function ProductPage({ params }: Props) {
   return <>
     {!product.fitment && signedIn && <JsonLd data={productLd({ id: product.id, name: product.name, description: product.description, priceCents: product.priceCents, imageUrl: product.imageUrl, inStock: inStock(product), path: productHref(product), category: categoryName(product.category) })} />}
     <section className="kit-product-hero"><div className="container kit-product-layout">
-      <div className="kit-product-image"><ProductImage product={product} sizes="(max-width: 700px) 100vw, 50vw"/></div>
+      <ProductGallery product={product}/>
       <div>
         <span className="eyebrow">{categoryName(product.category).toUpperCase()}{product.sample && " · SAMPLE LISTING"}</span>
         <h1 className="heading-lg">{product.name}</h1>
         <p>{product.description}</p>
-        {signedIn ? <div className="shop-price">{formatAud(product.priceCents)} <small>incl. GST</small></div> : <PriceLock path={`/wraps/shop/${product.id}`}/>}
+        {!signedIn && <PriceLock path={`/wraps/shop/${product.id}`}/>}
         <p className="shop-stock">{product.stock === null ? "Cut to order · usually dispatched in 3–5 business days" : product.stock > 0 ? `In stock${product.stock <= 5 ? ` · only ${product.stock} left` : ""}` : "Out of stock"}</p>
         <TestModeBanner/>
-        {signedIn && <AddToCart product={product} showQty/>}
+        {signedIn && <ProductBuy product={product}/>}
         <small className="cart-notice">Shipping {formatAud(SHIPPING_FLAT_CENTS)} Australia-wide, free over {formatAud(FREE_SHIPPING_OVER_CENTS)}, or free click & collect at Laverton North.</small>
-        {vehicle && <p className="shop-fitment">Made for the <b>{vehicle.make.name} {vehicle.model.name}</b> ({vehicle.model.years.at(-1)}–{vehicle.model.years[0]}). Check your year, trim and body variant before ordering. <Link href={`/wraps/kits/${vehicle.make.slug}/${vehicle.model.slug}`}>See all {vehicle.model.name} kits</Link></p>}
+        {vehicle && <p className="shop-fitment">Made for the <b>{vehicle.make.name} {vehicle.model.name}</b> {vehicle.model.years.length > 0 && <> ({vehicle.model.years.at(-1)}–{vehicle.model.years[0]})</>}. Check your year, trim and body variant before ordering. <Link href={`/wraps/kits/${vehicle.make.slug}/${vehicle.model.slug}`}>See all {vehicle.model.name} kits</Link></p>}
         <Link className="text-link" href={`/wraps/shop?category=${product.category}`}>← More {categoryName(product.category).toLowerCase()}</Link>
       </div>
     </div></section>

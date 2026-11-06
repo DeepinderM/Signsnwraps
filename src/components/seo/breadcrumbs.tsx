@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { JsonLd } from "./json-ld";
 import { breadcrumbLd } from "@/lib/seo";
 import { industries, locations, projects, services } from "@/lib/data/content";
-import { getVehicleSelection, kitCategories, kitCoverage } from "@/lib/data/wraps";
+import { coverageOf, getMake, getVehicleSelection, kitCategories, kitCoverage } from "@/lib/data/wraps";
 
 // Visible breadcrumb trail + BreadcrumbList structured data, derived from the URL.
 const labels: Record<string, string> = {
@@ -29,13 +29,16 @@ export function crumbsFor(pathname: string) {
     if (parent === "kits" && index === 2) {
       const category = kitCategories.find((item) => item.slug === segment) ?? kitCoverage.find((item) => item.slug === segment);
       if (category) { crumbs.push({ name: "title" in category ? category.title : category.name, path }); continue; }
+      const make = getMake(segment);
+      if (make) crumbs.push({ name: make.name, path });
       const vehicle = parts[3] ? getVehicleSelection(segment, parts[3]) : undefined;
+      if (make && !vehicle) continue;
       if (!vehicle) { crumbs.push({ name: titleCase(segment), path }); continue; }
-      crumbs.push({ name: `${vehicle.make.name} ${vehicle.model.name}${vehicle.year ? ` ${vehicle.year}` : ""}`, path: `${path}/${parts[3]}` });
-      index += 1; // make + model collapse into one crumb (there is no make-only page)
+      crumbs.push({ name: `${vehicle.model.name}${vehicle.year ? ` ${vehicle.year}` : ""}`, path: `${path}/${parts[3]}` });
+      index += 1;
       continue;
     }
-    if (parts[1] === "kits" && index === 4) { crumbs.push({ name: kitCoverage.find((item) => item.slug === segment)?.name ?? titleCase(segment), path }); continue; }
+    if (parts[1] === "kits" && index === 4) { crumbs.push({ name: coverageOf(segment)?.name.replace(/s$/, "") ?? titleCase(segment), path }); continue; }
     const name = segment === "fleet" ? (parent === "signs" ? "Fleet Signage" : "Fleet Wraps")
       : parent === "services" ? services.find((item) => item.slug === segment)?.title
       : parent === "industries" ? industries.find((item) => item.slug === segment)?.title

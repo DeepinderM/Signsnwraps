@@ -89,18 +89,34 @@ export async function setProductActive(form: FormData) {
   updateTag(PRODUCTS_TAG);
 }
 
-/** Adds the placeholder catalogue. Never overwrites a product that already exists. */
+/**
+ * Loads the shop catalogue (see sample-catalog.ts). New products are added; products that came from the kit
+ * catalogue are refreshed (names, prices, options, photos) but keep staff's live/stock settings; anything staff
+ * created themselves is never touched. Old placeholder kits from the first sample catalogue are hidden.
+ */
 export async function loadSampleCatalog() {
   await requireSuperAdmin();
   const products = buildSampleCatalog();
-  const existing = new Set((await productsCollection().select().get()).docs.map((doc) => doc.id));
-  const writer = db().bulkWriter();
+  const snapshot = await productsCollection().get();
+  const existing = new Map(snapshot.docs.map((doc) => [doc.id, doc.data()]));
+  const incoming = new Set(products.map((product) => product.id));
+  const writes: [string, Record<string, unknown>, "set" | "update"][] = [];
   for (const product of products) {
-    if (existing.has(product.id)) continue;
-    const { id, ...data } = product;
-    writer.create(productsCollection().doc(id), { ...data, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+    const { id, active, stock, ...data } = product;
+    const current = existing.get(id);
+    if (!current) writes.push([id, { ...data, active, stock, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() }, "set"]);
+    else if (current.source === "kit-catalogue") writes.push([id, { ...data, updatedAt: FieldValue.serverTimestamp() }, "update"]);
   }
-  await writer.close();
+  for (const [id, data] of existing) {
+    // Old placeholder kits, and catalogue products that are no longer in the catalogue, are hidden (not deleted).
+    if (((data.sample === true && data.category !== "colour") || data.source === "kit-catalogue") && !incoming.has(id) && data.active !== false) writes.push([id, { active: false, updatedAt: FieldValue.serverTimestamp() }, "update"]);
+  }
+  // Plain batches (max 500 writes each) are dependable on both Firestore and the local emulator.
+  for (let index = 0; index < writes.length; index += 100) {
+    const batch = db().batch();
+    for (const [id, data, kind] of writes.slice(index, index + 100)) kind === "set" ? batch.set(productsCollection().doc(id), data) : batch.update(productsCollection().doc(id), data);
+    await batch.commit();
+  }
   updateTag(PRODUCTS_TAG);
   redirect("/admin/products");
 }

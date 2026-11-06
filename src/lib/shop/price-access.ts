@@ -10,8 +10,8 @@ export async function canSeePrices() {
 }
 
 /** Removes the price so it never leaves the server for a signed-out visitor. */
-export function withoutPrice<T extends Pick<Product, "priceCents">>(product: T): T {
-  return { ...product, priceCents: 0 };
+export function withoutPrice<T extends Pick<Product, "priceCents"> & Partial<Pick<Product, "variants">>>(product: T): T {
+  return { ...product, priceCents: 0, ...(product.variants ? { variants: product.variants.map((variant) => ({ ...variant, priceCents: 0 })) } : {}) };
 }
 
 export function loginForPricesHref(path: string) {

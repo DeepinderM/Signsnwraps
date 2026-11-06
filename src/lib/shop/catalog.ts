@@ -24,8 +24,19 @@ export type Product = {
   sample: boolean;
   sortOrder: number;
   fitment: { make: string; model: string; coverage: string } | null;
+  /** Model years a vehicle kit fits (newest first); empty = not split by year. */
+  years: number[];
+  /** Extra photos (the first is imageUrl). */
+  images: string[];
+  /** Choices such as Coverage (Cab only / Tub included) or a bonnet strip add-on. Empty = one price. */
+  options: ProductOption[];
+  /** One entry per orderable combination of option values, each with its own price. priceCents is the lowest. */
+  variants: ProductVariant[];
   updatedAt: number;
 };
+
+export type ProductOption = { name: string; values: string[] };
+export type ProductVariant = { key: string; label: string; values: string[]; priceCents: number };
 
 export type DeliveryMethod = "ship" | "pickup";
 
@@ -52,6 +63,17 @@ export function isCategory(value: unknown): value is ProductCategory {
 export function categoryName(slug: string) {
   return productCategories.find((item) => item.slug === slug)?.name ?? slug;
 }
+
+// A cart line for a product option is "<productId>~<variantKey>"; checkout re-prices it from the variant.
+export const VARIANT_SEPARATOR = "~";
+export const lineId = (productId: string, variantKey?: string) => (variantKey ? `${productId}${VARIANT_SEPARATOR}${variantKey}` : productId);
+export function splitLineId(id: string) {
+  const [productId, variantKey = ""] = id.split(VARIANT_SEPARATOR);
+  return { productId, variantKey };
+}
+export const findVariant = (product: Pick<Product, "variants">, key: string) => product.variants.find((variant) => variant.key === key);
+/** "From $489" when a product has options with different prices. */
+export const hasPriceRange = (product: Pick<Product, "variants">) => new Set(product.variants.map((variant) => variant.priceCents)).size > 1;
 
 export function vehicleKitId(make: string, model: string, coverage: string) {
   return `kit-${make}-${model}-${coverage}`;
