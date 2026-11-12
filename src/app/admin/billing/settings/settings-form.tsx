@@ -17,7 +17,7 @@ export function SettingsForm({ settings }: { settings: BillingSettings }) {
       <label className="bill-check"><input type="checkbox" name="gstRegistered" defaultChecked={settings.gstRegistered} /> Registered for GST (adds 10% GST and titles invoices “Tax invoice”)</label>
     </div></section>
     <section className="admin-card"><h2>Payment details (printed on invoices)</h2><div className="bill-grid">
-      {input("accountName", "Account name")}{input("bankName", "Bank")}{input("bsb", "BSB", { inputMode: "numeric", placeholder: "000-000" })}{input("accountNumber", "Account number", { inputMode: "numeric" })}
+      {input("accountName", "Account name")}{input("bankName", "Bank")}{input("bsb", "BSB", { inputMode: "numeric", placeholder: "000-000" })}{input("accountNumber", "Account number", { inputMode: "numeric" })}{input("swift", "BIC / SWIFT (overseas payments)", { placeholder: "CTBAAU2S" })}
     </div></section>
     <section className="admin-card"><h2>Defaults & terms</h2><div className="bill-grid">
       {input("quoteValidDays", "Quotes valid for (days)", { type: "number", min: 0, max: 365 })}{input("paymentTermsDays", "Invoice payment terms (days)", { type: "number", min: 0, max: 365 })}

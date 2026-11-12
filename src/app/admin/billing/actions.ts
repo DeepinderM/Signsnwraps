@@ -169,7 +169,7 @@ export async function saveSettings(_: BillingResult, form: FormData): Promise<Bi
   await saveBillingSettings({
     businessName: field(form, "businessName", 120) || "Signsnwraps", abn: abn.replace(/^(\d{2})(\d{3})(\d{3})(\d{3})$/, "$1 $2 $3 $4"), address: field(form, "address", 300), phone: field(form, "phone", 40), email, website: field(form, "website", 120),
     gstRegistered: form.get("gstRegistered") === "on", quoteValidDays: days("quoteValidDays", 30), paymentTermsDays: days("paymentTermsDays", 14),
-    bankName: field(form, "bankName", 80), bsb: bsb.replace(/^(\d{3})-?(\d{3})$/, "$1-$2"), accountNumber: field(form, "accountNumber", 20), accountName: field(form, "accountName", 120),
+    bankName: field(form, "bankName", 80), bsb: bsb.replace(/^(\d{3})-?(\d{3})$/, "$1-$2"), accountNumber: field(form, "accountNumber", 20), accountName: field(form, "accountName", 120), swift: field(form, "swift", 11).toUpperCase(),
     quoteTerms: field(form, "quoteTerms", 2000), invoiceTerms: field(form, "invoiceTerms", 2000),
   }, who(admin));
   refresh();
@@ -185,7 +185,10 @@ export async function updatePaymentStage(_: BillingResult, form: FormData): Prom
   if (!["full", "deposit", "installation", "completion"].includes(key) || !["request", "paid", "unpaid"].includes(action)) return { error: "That change isn't available." };
   if (doc.status === "draft" && action !== "request") return { error: "Send the invoice before recording payments." };
   const reference = field(form, "reference", 80);
-  const result = await updateStage(doc.id, key, action as "request" | "paid" | "unpaid", who(admin), action === "paid" ? reference || "Recorded by staff" : "");
+  // Staff record cash or bank transfer payments; online card payments are recorded by the Stripe webhook.
+  const method = field(form, "method", 10);
+  if (action === "paid" && method !== "cash" && method !== "bank") return { error: "Choose how it was paid: cash or bank transfer." };
+  const result = await updateStage(doc.id, key, action as "request" | "paid" | "unpaid", who(admin), action === "paid" ? reference : "", action === "paid" ? { method: method as "cash" | "bank", byEmail: admin.email } : undefined);
   if ("error" in result) return { error: result.error };
   if (doc.enquiryId && !("already" in result)) await addEnquiryNote(doc.enquiryId, `Invoice ${doc.number}: ${result.ok}`, who(admin)).catch(() => undefined);
   refresh();

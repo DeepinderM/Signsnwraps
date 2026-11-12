@@ -37,7 +37,7 @@ export async function recordInvoicePayment(sessionId: string) {
   if (session.payment_status !== "paid") return true;
   // updateStage is transactional and ignores a stage that's already paid, so webhook retries are safe.
   const stage = (session.metadata?.stage ?? "full") as StageKey;
-  const result = await updateStage(billingId, stage, "paid", "Stripe", `Paid online · ${typeof session.payment_intent === "string" ? session.payment_intent : session.id}`);
+  const result = await updateStage(billingId, stage, "paid", "Stripe", `Stripe ${typeof session.payment_intent === "string" ? session.payment_intent : session.id}`, { method: "online" });
   if ("ok" in result && !("already" in result) && result.doc?.enquiryId) await addEnquiryNote(result.doc.enquiryId, `Invoice ${result.doc.number}: ${result.ok}`, "Stripe").catch(() => undefined);
   return true;
 }

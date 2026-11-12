@@ -42,6 +42,8 @@ const nextConfig: NextConfig = {
       // One address for search engines: the old Vercel address sends visitors (and Google) to the real domain.
       // /api is left out so webhooks (e.g. Stripe) still pointed at the old address keep working: they don't follow redirects.
       { source: "/:path((?!api/).*)", has: [{ type: "host", value: "signsnwraps.vercel.app" }], destination: "https://signsnwraps.com.au/:path", permanent: true },
+      // www is the same site: send it to the main address so Google keeps one copy of each page.
+      { source: "/:path((?!api/).*)", has: [{ type: "host", value: "www.signsnwraps.com.au" }], destination: "https://signsnwraps.com.au/:path", permanent: true },
       { source: "/wraps/film", destination: "/wraps/ppf", permanent: true },
       // One URL per service: these duplicated the Signs/Wraps pages.
       { source: "/services/signage", destination: "/signs/signage", permanent: true },

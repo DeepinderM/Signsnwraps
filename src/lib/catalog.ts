@@ -3,6 +3,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { db } from "@/lib/firebase/admin";
 import odooSeed from "@/lib/data/catalog-seed.json";
 import extraSeed from "@/lib/data/catalog-extra.json";
+import { lightboxCatalogItems } from "@/lib/lightboxes";
 import { DEFAULT_ROLL_WIDTH_MM, type CatalogItem, type CatalogOption } from "@/lib/catalog-types";
 
 // Quote/invoice product catalog (Firestore `catalog`), first loaded from the Odoo export
@@ -12,7 +13,7 @@ import { DEFAULT_ROLL_WIDTH_MM, type CatalogItem, type CatalogOption } from "@/l
 // every store uses it from the "Add from catalog" picker in the quote/invoice editor.
 
 const catalog = () => db().collection("catalog");
-const seed = [...odooSeed, ...extraSeed];
+const seed = [...odooSeed, ...extraSeed, ...lightboxCatalogItems()];
 
 function toItem(id: string, data: FirebaseFirestore.DocumentData): CatalogItem {
   return {
@@ -53,7 +54,7 @@ export async function setCatalogItemActive(id: string, active: boolean, by: stri
 export async function importSeedCatalog(by: string, { updateExisting = false } = {}) {
   const existing = new Map((await catalog().get()).docs.map((doc) => [doc.id, doc.data()]));
   let added = 0, updated = 0, grouped = 0, retired = 0;
-  const items = seed as { id: string; name: string; category: string; subcategory?: string; priceCents: number; unit: string; pricing?: string; rollWidthMm?: number; code?: string; production?: string; active?: boolean; options: CatalogOption[] }[];
+  const items = seed as { id: string; name: string; category: string; subcategory?: string; priceCents: number; unit: string; pricing?: string; rollWidthMm?: number; code?: string; production?: string; description?: string; active?: boolean; options: CatalogOption[] }[];
   for (let index = 0; index < items.length; index += 400) {
     const batch = db().batch();
     for (const item of items.slice(index, index + 400)) {
@@ -63,7 +64,7 @@ export async function importSeedCatalog(by: string, { updateExisting = false } =
         if (item.subcategory && !current.subcategory) { batch.update(catalog().doc(item.id), { subcategory: item.subcategory }); grouped += 1; }
         continue;
       }
-      batch.set(catalog().doc(item.id), { ...item, pricing: item.pricing ?? "fixed", subcategory: item.subcategory ?? current?.subcategory ?? "", description: current?.description ?? "", active: current ? current.active !== false : item.active !== false, source: "odoo", updatedBy: by, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+      batch.set(catalog().doc(item.id), { ...item, pricing: item.pricing ?? "fixed", subcategory: item.subcategory ?? current?.subcategory ?? "", description: updateExisting && item.description ? item.description : current?.description || item.description || "", active: current ? current.active !== false : item.active !== false, source: "odoo", updatedBy: by, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
       if (current) updated += 1; else added += 1;
     }
     await batch.commit();

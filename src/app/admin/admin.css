@@ -385,3 +385,17 @@ span.admin-status{cursor:default}
 .ls-groups-foot{display:flex;flex-wrap:wrap;align-items:center;gap:12px;font-size:13px;color:#4A5568}
 .ls-code code{display:block}.ls-code-for{font:600 12px Inter,system-ui,sans-serif;color:#9fd8fb;letter-spacing:0}
 @media(max-width:800px){.ls-group{grid-template-columns:1fr 1fr}}
+
+/* Lightbox frame colour */
+.frame-colour-picks{display:flex;flex-wrap:wrap;gap:6px}.frame-colour-picks .ls-chip{margin-top:6px}
+
+/* Payment stages: how it was paid and who recorded it */
+.pay-record-line{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:4px;font-size:12.5px;color:#4A5568}
+.pay-record-line b{color:#13233A}
+.pay-method{display:inline-block;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px;background:#E3F2FB;color:#026BA3}
+.pay-method.is-cash{background:#E5F4EC;color:#1F7A4D}.pay-method.is-online{background:#EEE8FB;color:#5B3FB8}
+.pay-methods{display:flex;gap:6px}
+.pay-methods label{display:inline-flex;align-items:center;padding:8px 14px;border:1px solid #c9d4df;border-radius:999px;font-size:13px;font-weight:700;color:#13233A;background:#fff;cursor:pointer}
+.pay-methods label.is-on{background:#13233A;border-color:#13233A;color:#fff}
+.pay-methods input{position:absolute;opacity:0;pointer-events:none}.pay-methods label:has(input:focus-visible){outline:2px solid #03AAFA;outline-offset:2px}
+.pay-record{flex-wrap:wrap}

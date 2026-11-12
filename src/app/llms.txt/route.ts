@@ -10,7 +10,7 @@ export function GET() {
 
 > ${SITE.summary}
 
-Also known as: ${SITE.alternateNames.join(", ")}. Location: ${SITE.address.locality} ${SITE.address.region} ${SITE.address.postalCode}, Australia (Melbourne's west). Consultations by appointment. Email: ${SITE.email}. Service area: Melbourne, Geelong and Victoria; PPF kits ship Australia-wide.
+Also known as: ${SITE.alternateNames.join(", ")}. Location: ${SITE.address.street}, ${SITE.address.locality} ${SITE.address.region} ${SITE.address.postalCode}, Australia (Melbourne's west). Consultations by appointment. Phone: ${SITE.telephone}. Email: ${SITE.email}. Service area: Melbourne, Geelong and Victoria; PPF kits ship Australia-wide.
 
 ## Signs & print
 ${link("Commercial signage", "/signs/signage", "shopfront, building, illuminated, 3D, wayfinding and safety signs, designed, fabricated and installed")}

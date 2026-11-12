@@ -11,9 +11,8 @@ export const SITE = {
   tagline: "Expert advice. Bold results.",
   summary: "Signsnwraps is a signage, printing, vehicle wrap and paint protection film (PPF) studio in Laverton North, Melbourne. It helps businesses and vehicle owners plan, create and protect the way they are seen, from shopfront signs and fleet branding to colour-change wraps and pre-cut PPF kits.",
   email: "sale@signsnwraps.com.au",
-  // Placeholder number on the site; leave out of structured data until the real one is confirmed.
-  telephone: null as string | null,
-  address: { locality: "Laverton North", region: "VIC", postalCode: "3026", country: "AU" },
+  telephone: "+61 415 153 767" as string | null,
+  address: { street: "Unit 6, 151 Dohertys Road", locality: "Laverton North", region: "VIC", postalCode: "3026", country: "AU" },
   areaServed: ["Laverton North", "Melbourne", "Geelong", "Victoria", "Australia"],
   openingHours: [{ days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], opens: "08:30", closes: "17:00" }],
 } as const;
@@ -45,7 +44,7 @@ export const BUSINESS_ID = `${SITE_URL}/#localbusiness`;
 export const WEBSITE_ID = `${SITE_URL}/#website`;
 
 export function siteGraph() {
-  const address = { "@type": "PostalAddress", addressLocality: SITE.address.locality, addressRegion: SITE.address.region, postalCode: SITE.address.postalCode, addressCountry: SITE.address.country };
+  const address = { "@type": "PostalAddress", streetAddress: SITE.address.street, addressLocality: SITE.address.locality, addressRegion: SITE.address.region, postalCode: SITE.address.postalCode, addressCountry: SITE.address.country };
   return {
     "@context": "https://schema.org",
     "@graph": [

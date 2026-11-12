@@ -32,7 +32,12 @@ export type BillingEvent = { at: number; by: string; text: string };
  * A stage is "upcoming" until staff request it, "due" once requested (the first is due straight away), then "paid".
  */
 export type StageKey = "full" | "deposit" | "installation" | "completion";
-export type PaymentStage = { key: StageKey; label: string; percent: number; amountCents: number; when: string; status: "upcoming" | "due" | "paid"; requestedAt: number; paidAt: number; reference: string };
+export type PaymentStage = { key: StageKey; label: string; percent: number; amountCents: number; when: string; status: "upcoming" | "due" | "paid"; requestedAt: number; paidAt: number; reference: string;
+  /** How a paid stage was paid, and who recorded it (staff name, or "Stripe" for online payments). Empty on older records. */
+  method?: PaymentMethod; paidBy?: string; paidByEmail?: string };
+// Payment method names live in payment-methods.ts so browser components can use them too.
+import { paymentMethodLabel, type PaymentMethod } from "./payment-methods";
+export { paymentMethodLabel, type PaymentMethod } from "./payment-methods";
 
 const stagePlan: Record<"full" | "staged", { key: StageKey; label: string; percent: number; when: string }[]> = {
   full: [{ key: "full", label: "Payment in full", percent: 100, when: "Before work starts" }],
@@ -93,6 +98,8 @@ export type BillingSettings = {
   businessName: string; abn: string; address: string; phone: string; email: string; website: string;
   gstRegistered: boolean; quoteValidDays: number; paymentTermsDays: number;
   bankName: string; bsb: string; accountNumber: string; accountName: string;
+  /** BIC/SWIFT code, shown for customers paying from overseas. */
+  swift: string;
   quoteTerms: string; invoiceTerms: string;
 };
 
@@ -133,16 +140,19 @@ const billing = () => db().collection("billing");
 const settingsDoc = () => db().collection("system").doc("billingSettings");
 
 const defaultSettings: BillingSettings = {
-  businessName: "Signsnwraps", abn: "", address: "", phone: "", email: "", website: (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/^https?:\/\//, "").replace(/\/$/, ""),
+  businessName: "Signsnwraps", abn: "", address: "Unit 6, 151 Dohertys Road, Laverton North VIC 3026", phone: "+61 415 153 767", email: "sale@signsnwraps.com.au", website: (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/^https?:\/\//, "").replace(/\/$/, ""),
   gstRegistered: true, quoteValidDays: 30, paymentTermsDays: 14,
-  bankName: "", bsb: "", accountNumber: "", accountName: "",
+  // The business account; Settings can change it. Blank saved bank fields fall back to these.
+  bankName: "Commonwealth Bank", bsb: "063-523", accountNumber: "1090 2033", accountName: "SIGNS N WRAPS PTY LTD", swift: "CTBAAU2S",
   quoteTerms: "This quote is valid for the period shown. Prices include GST where shown. Work is scheduled once the quote is accepted.",
   invoiceTerms: "Please pay by the due date using the invoice number as your payment reference.",
 };
 
 export async function getBillingSettings(): Promise<BillingSettings> {
   const data = (await settingsDoc().get()).data() ?? {};
-  return { ...defaultSettings, ...Object.fromEntries(Object.entries(data).filter(([key]) => key in defaultSettings)) } as BillingSettings;
+  // Blank saved contact and bank fields fall back to the business defaults above.
+  const bankFields = ["address", "phone", "email", "bankName", "bsb", "accountNumber", "accountName", "swift"];
+  return { ...defaultSettings, ...Object.fromEntries(Object.entries(data).filter(([key, value]) => key in defaultSettings && !(bankFields.includes(key) && value === ""))) } as BillingSettings;
 }
 
 export async function saveBillingSettings(settings: BillingSettings, by: string) {
@@ -249,7 +259,7 @@ const money = (cents: number) => `$${(cents / 100).toLocaleString("en-AU", { min
  * "request" makes an upcoming stage due, "paid" records it, "unpaid" reverses a payment.
  * The invoice becomes "paid" once every stage is paid.
  */
-export async function updateStage(id: string, key: StageKey, action: "request" | "paid" | "unpaid", by: string, reference = "") {
+export async function updateStage(id: string, key: StageKey, action: "request" | "paid" | "unpaid", by: string, reference = "", payment?: { method: PaymentMethod; byEmail?: string }) {
   const ref = billing().doc(id);
   return db().runTransaction(async (tx) => {
     const snapshot = await tx.get(ref);
@@ -263,15 +273,15 @@ export async function updateStage(id: string, key: StageKey, action: "request" |
     const now = Date.now();
     const schedule = doc.schedule.map((item) => item.key !== key ? item
       : action === "request" ? { ...item, status: "due" as const, requestedAt: now }
-      : action === "paid" ? { ...item, status: "paid" as const, paidAt: now, reference }
-      : { ...item, status: "due" as const, paidAt: 0, reference: "" });
+      : action === "paid" ? { ...item, status: "paid" as const, paidAt: now, reference, method: payment?.method ?? "bank", paidBy: by, paidByEmail: payment?.byEmail ?? "" }
+      : { ...item, status: "due" as const, paidAt: 0, reference: "", method: undefined, paidBy: "", paidByEmail: "" });
     const paidCents = schedule.filter((item) => item.status === "paid").reduce((sum, item) => sum + item.amountCents, 0);
     const allPaid = schedule.every((item) => item.status === "paid");
     const text = action === "request" ? `${stage.label} (${stage.percent}%, ${money(stage.amountCents)}) requested`
-      : action === "paid" ? `${stage.label} (${stage.percent}%, ${money(stage.amountCents)}) paid${reference ? ` · ${reference}` : ""}`
+      : action === "paid" ? `${stage.label} (${stage.percent}%, ${money(stage.amountCents)}) paid · ${paymentMethodLabel[payment?.method ?? "bank"]}${reference ? ` · ${reference}` : ""}`
       : `${stage.label} payment reversed`;
     tx.update(ref, {
-      schedule, paidCents, status: allPaid ? "paid" : doc.status === "paid" ? "sent" : doc.status,
+      schedule: schedule.map((item) => Object.fromEntries(Object.entries(item).filter(([, value]) => value !== undefined))), paidCents, status: allPaid ? "paid" : doc.status === "paid" ? "sent" : doc.status,
       ...(allPaid ? { paidAt: FieldValue.serverTimestamp() } : {}),
       updatedAt: FieldValue.serverTimestamp(), history: FieldValue.arrayUnion(event(by, allPaid && action === "paid" ? `${text}. Invoice paid in full` : text)),
     });

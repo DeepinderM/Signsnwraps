@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   openGraph: { type: "website", locale: "en_AU", siteName: SITE.name },
   twitter: { card: "summary_large_image" },
   formatDetection: { telephone: false },
+  // Google Search Console ownership check (HTML tag method): set GOOGLE_SITE_VERIFICATION in Vercel to the tag's content value.
+  ...(process.env.GOOGLE_SITE_VERIFICATION ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } } : {}),
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

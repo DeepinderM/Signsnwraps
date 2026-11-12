@@ -6,6 +6,9 @@ import { catalogLineDescription, catalogPrice, optionValueLabel, rollPrice, roll
 import { CustomStickerForm } from "./custom-sticker-form";
 import { LetterSignForm } from "./letter-sign-form";
 import { AcpSignForm } from "./acp-sign-form";
+import { CustomLightboxForm } from "./custom-lightbox-form";
+import { FrameColourField } from "./frame-colour-field";
+import { DEFAULT_FRAME_COLOUR, frameColourLine } from "@/lib/lightboxes";
 import { RollDiagram } from "@/components/billing/roll-diagram";
 
 const money = (cents: number) => `$${(cents / 100).toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -24,6 +27,8 @@ export function CatalogPicker({ items, kind, onAdd, onClose }: { items: CatalogI
   const [customSticker, setCustomSticker] = useState(false);
   const [letterSign, setLetterSign] = useState(false);
   const [acpSign, setAcpSign] = useState(false);
+  const [lightbox, setLightbox] = useState(false);
+  const [frameColour, setFrameColour] = useState(DEFAULT_FRAME_COLOUR);
   const [choices, setChoices] = useState<number[]>([]);
   const [qty, setQty] = useState("1");
   const [size, setSize] = useState({ width: "", height: "" });
@@ -37,10 +42,11 @@ export function CatalogPicker({ items, kind, onAdd, onClose }: { items: CatalogI
   const shown = items.filter((item) => (!category || item.category === category) && (!subcategory || item.subcategory === subcategory) && words.every((word) => `${item.name} ${item.category} ${item.subcategory}`.toLowerCase().includes(word)));
 
   // Offer the custom-size sticker when browsing stickers or searching for one.
+  const showLightbox = category === "Lightboxes" || (!category && words.length > 0 && words.every((word) => "custom size light box lightbox lightboxes illuminated".includes(word)));
   const showAcpSign = category === "ACP Panels" || (!category && words.length > 0 && words.every((word) => "acp panel panels sign signage board printed laminated".includes(word)));
   const showLetterSign = category === "3D Letters" || (!category && words.length > 0 && words.every((word) => "3d letter letters sign signage 3dl channel".includes(word)));
   const showCustomSticker = items.some((item) => item.category === "Stickers") && (category === "Stickers" || (!category && words.length > 0 && words.every((word) => "custom size sticker stickers".includes(word))));
-  const pick = (item: CatalogItem) => { setSelected(item); setChoices(item.options.map(() => 0)); setQty("1"); setSize({ width: "", height: "" }); setShowDiagram(false); setAdded(""); };
+  const pick = (item: CatalogItem) => { setSelected(item); setChoices(item.options.map(() => 0)); setQty("1"); setSize({ width: "", height: "" }); setShowDiagram(false); setAdded(""); setFrameColour(DEFAULT_FRAME_COLOUR); };
   // Roll-priced products (e.g. vinyl stickers): charged for the vinyl roll used, any size.
   const byArea = selected?.pricing === "roll";
   const widthMm = Number(size.width) || 0, heightMm = Number(size.height) || 0;
@@ -49,14 +55,18 @@ export function CatalogPicker({ items, kind, onAdd, onClose }: { items: CatalogI
   const unit = !selected ? 0 : byArea ? (sizeOk ? rollPrice(selected, widthMm, heightMm, choices) : 0) : catalogPrice(selected, choices);
   const quantity = Math.max(Number(qty) || 0, 0);
 
-  const addCustom = (line: PickedLine) => { onAdd(line); setAdded(`Added: ${line.code ?? line.description.split("\n")[0]}`); setCustomSticker(false); setLetterSign(false); setAcpSign(false); };
+  const addCustom = (line: PickedLine) => { onAdd(line); setAdded(`Added: ${line.code ?? line.description.split("\n")[0]}`); setCustomSticker(false); setLetterSign(false); setAcpSign(false); setLightbox(false); };
 
   function add() {
     if (!selected || quantity <= 0 || (byArea && !sizeOk)) return;
     const base = catalogLineDescription(selected, choices);
     // The customer sees the finished size only; how much roll it uses is an internal costing detail.
-    const description = byArea ? base.replace(selected.name, `${selected.name}\nSize: ${widthMm} x ${heightMm} mm`) : base;
-    onAdd({ description, qty: quantity, unitCents: unit, ...(selected.code ? { code: selected.code } : {}), ...(selected.production ? { production: selected.production } : {}), ...(byArea ? { roll: { widthMm, heightMm, rollWidthMm: selected.rollWidthMm, pricePerM2Cents: selected.priceCents, showDiagram } } : {}) });
+    const sized = byArea ? base.replace(selected.name, `${selected.name}\nSize: ${widthMm} x ${heightMm} mm`) : base;
+    // Lightboxes carry their frame colour on the line and on the job sheet.
+    const lightboxItem = selected.category === "Lightboxes";
+    const description = lightboxItem ? `${sized}\n${frameColourLine(frameColour)}` : sized;
+    const production = [selected.production, lightboxItem ? frameColourLine(frameColour) : ""].filter(Boolean).join("\n");
+    onAdd({ description, qty: quantity, unitCents: unit, ...(selected.code ? { code: selected.code } : {}), ...(production ? { production } : {}), ...(byArea ? { roll: { widthMm, heightMm, rollWidthMm: selected.rollWidthMm, pricePerM2Cents: selected.priceCents, showDiagram } } : {}) });
     setAdded(`Added: ${selected.name}`);
     setSelected(null);
   }
@@ -66,11 +76,12 @@ export function CatalogPicker({ items, kind, onAdd, onClose }: { items: CatalogI
       <b>Add from catalog</b><small>{items.length} products · prices ex GST</small>
       <button type="button" className="cat-close" onClick={onClose} aria-label="Close catalog"><X aria-hidden /></button>
     </div>
-    {acpSign ? <AcpSignForm kind={kind} onAdd={addCustom} onBack={() => setAcpSign(false)} /> : letterSign ? <LetterSignForm kind={kind} onAdd={addCustom} onBack={() => setLetterSign(false)} /> : customSticker ? <CustomStickerForm items={items} kind={kind} onAdd={addCustom} onBack={() => setCustomSticker(false)} /> : !selected ? <>
+    {lightbox ? <CustomLightboxForm kind={kind} onAdd={addCustom} onBack={() => setLightbox(false)} /> : acpSign ? <AcpSignForm kind={kind} onAdd={addCustom} onBack={() => setAcpSign(false)} /> : letterSign ? <LetterSignForm kind={kind} onAdd={addCustom} onBack={() => setLetterSign(false)} /> : customSticker ? <CustomStickerForm items={items} kind={kind} onAdd={addCustom} onBack={() => setCustomSticker(false)} /> : !selected ? <>
       <label className="cat-search"><Search aria-hidden /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search e.g. business cards velvet, A5 flyer, corflute 600x900" aria-label="Search the catalog" /></label>
       <div className="cat-chips" role="group" aria-label="Categories"><button type="button" aria-pressed={!category} onClick={() => { setCategory(""); setSubcategory(""); }}>All</button>{categories.map((name) => <button type="button" key={name} aria-pressed={category === name} onClick={() => { setCategory(name); setSubcategory(""); setQuery(""); }}>{name}</button>)}</div>
       {subcategories.length > 0 && <div className="cat-chips cat-subchips" role="group" aria-label={`${category} types`}><button type="button" aria-pressed={!subcategory} onClick={() => setSubcategory("")}>All {category.toLowerCase()}</button>{subcategories.map((name) => <button type="button" key={name} aria-pressed={subcategory === name} onClick={() => setSubcategory(name)}>{name}</button>)}</div>}
       {added && <p className="admin-ok cat-added" role="status">{added}. Pick another product or close the catalog.</p>}
+      {showLightbox && <button type="button" className="cat-custom" onClick={() => { setLightbox(true); setAdded(""); }}><b>Custom size lightbox</b><small>Round, square or rectangular in any size (mm), priced from the lightbox price list.</small><em>Price by size →</em></button>}
       {showAcpSign && <button type="button" className="cat-custom" onClick={() => { setAcpSign(true); setAdded(""); }}><b>ACP sign, any size (vinyl printed &amp; laminated)</b><small>Enter the size; the cheapest combination of panels is worked out, with a layout diagram.</small><em>Calculate →</em></button>}
       {showLetterSign && <button type="button" className="cat-custom" onClick={() => { setLetterSign(true); setAdded(""); }}><b>3D letter sign builder</b><small>Ready-made builds or custom, priced per letter by height. Writes the product code for client and production.</small><em>Build →</em></button>}
       {showCustomSticker && <button type="button" className="cat-custom" onClick={() => { setCustomSticker(true); setAdded(""); }}><b>Custom size sticker</b><small>Any shape and size in mm, priced from the standard sticker range</small><em>Price by size →</em></button>}
@@ -86,6 +97,7 @@ export function CatalogPicker({ items, kind, onAdd, onClose }: { items: CatalogI
         <select id={`cat-opt-${index}`} value={choices[index] ?? 0} onChange={(event) => setChoices((current) => current.map((value, i) => (i === index ? Number(event.target.value) : value)))}>
           {option.values.map((value, valueIndex) => <option key={value.label} value={valueIndex}>{optionValueLabel(selected, option, value, money)}</option>)}
         </select></div>)}
+      {selected.category === "Lightboxes" && <FrameColourField id="cat-frame" value={frameColour} onChange={setFrameColour} />}
       {byArea && <div className="cs-size">
         <div className="field"><label htmlFor="cat-w">Width (mm)</label><input id="cat-w" inputMode="numeric" value={size.width} onChange={(event) => setSize((current) => ({ ...current, width: event.target.value.replace(/[^\d]/g, "") }))} placeholder="e.g. 2000" /></div>
         <span aria-hidden>×</span>

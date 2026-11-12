@@ -270,7 +270,7 @@ export async function renderBillingPdf(doc: BillingDoc, settings: BillingSetting
   };
   if (doc.kind === "invoice" && doc.status !== "paid" && doc.status !== "void") {
     const reference = due && doc.schedule.length > 1 ? `${doc.number}-${doc.schedule.indexOf(due) + 1}` : doc.number;
-    const bank = settings.bsb && settings.accountNumber ? [`Bank transfer: ${settings.accountName || settings.businessName}${settings.bankName ? ` · ${settings.bankName}` : ""}`, `BSB ${settings.bsb} · Account ${settings.accountNumber}`, `Reference: ${reference}`] : [];
+    const bank = settings.bsb && settings.accountNumber ? [`Bank transfer: ${settings.accountName || settings.businessName}${settings.bankName ? ` · ${settings.bankName}` : ""}`, `BSB ${settings.bsb} · Account ${settings.accountNumber}${settings.swift ? ` · SWIFT ${settings.swift} (overseas)` : ""}`, `Reference: ${reference}`] : [];
     if (bank.length) block("PAY BY BANK TRANSFER", bank);
     linkBlock(getStripe() ? "PAY ONLINE" : "VIEW ONLINE", getStripe() ? "Pay by card, Apple Pay or Google Pay (click the link):" : "View this invoice online (click the link):", viewUrl);
   }
