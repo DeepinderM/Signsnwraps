@@ -35,6 +35,8 @@ const nextConfig: NextConfig = {
   experimental: {
     // Admin product photo uploads (4 MB max) go through a Server Action.
     serverActions: { bodySizeLimit: "5mb" },
+    // Next.js upgrade assistant: offer security upgrades.
+    agentUpgrade: "security",
   },
   // /wraps/film was removed; send old links and bookmarks to the PPF page.
   async redirects() {
