@@ -17,7 +17,7 @@ export const MAX_STICKER_MM = 1000;
 type Reference = { id: string; name: string; areaCm2: number; totals: Map<string, number> };
 
 /** Width × height in mm from names like "Rectangle Sticker - 148 x 110 mm". */
-const sizeFromName = (name: string) => { const match = /(\d+)\s*x\s*(\d+)\s*mm/i.exec(name); return match ? [Number(match[1]), Number(match[2])] as const : null; };
+export const sizeFromName = (name: string) => { const match = /(\d+)\s*x\s*(\d+)\s*mm/i.exec(name); return match ? [Number(match[1]), Number(match[2])] as const : null; };
 
 export function stickerReferences(items: CatalogItem[]) {
   const references: Reference[] = [];
@@ -74,3 +74,25 @@ export function customStickerPrice(references: Reference[], widthMm: number, hei
   const cents = low.cents + ((high.cents - low.cents) * (area - low.area)) / (high.area - low.area);
   return { cents: roundUp(cents), basis: `Between ${low.label} and ${high.label}`, warning: "" };
 }
+
+/**
+ * Print price per m² for a sticker run: the print price (design service left out) over the total printed area,
+ * using each sticker's width × height (a circle counts as the square of its diameter, as it's priced). Null without a size or quantity.
+ */
+export function stickerPricePerM2(printCents: number, widthMm: number, heightMm: number, quantity: string | number) {
+  const count = typeof quantity === "number" ? quantity : parseInt(quantity.replace(/[^\d]/g, ""), 10);
+  const areaM2 = (widthMm * heightMm * count) / 1_000_000;
+  return count > 0 && areaM2 > 0 ? { cents: Math.round(printCents / areaM2), areaM2, count } : null;
+}
+/** "$412.50 per m² of print": the line added to a quote when staff choose to show the rate. */
+export const perM2Text = (rate: { cents: number; areaM2: number; count: number }, money: (cents: number) => string) => `${money(rate.cents)} per m² of print`;
+
+/** Per m² rates staff can price a sticker run at instead of the price list (ex GST, cents per m² of print). */
+export const STICKER_M2_RATES = [6000, 6500, 7000, 8000, 9000, 10000, 11000, 12000];
+/** Price of a run at a per m² rate: rate × printed area (width × height × quantity), to the cent. */
+export function stickerPriceAtRate(rateCents: number, widthMm: number, heightMm: number, quantity: string | number) {
+  const count = typeof quantity === "number" ? quantity : parseInt(quantity.replace(/[^\d]/g, ""), 10);
+  return count > 0 ? Math.round((rateCents * widthMm * heightMm * count) / 1_000_000) : 0;
+}
+/** The quote line text for a run priced at a rate; the server reads it back to check the price. */
+export const ratePricedText = (rateCents: number, money: (cents: number) => string) => `Priced at ${money(rateCents)} per m² of print`;

@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { PDFDocument, PDFName, PDFString, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { discountLabel, formatDate, nextDueStage, type BillingDoc, type BillingSettings } from "@/lib/billing";
 import { getStripe } from "@/lib/stripe";
+import { NON_REFUNDABLE_NOTE } from "@/lib/payment-methods";
 import { rollUsage } from "@/lib/catalog-types";
 import { describeJobBill, panelName, panelsForSet, planAcpJob } from "@/lib/acp-panels";
 
@@ -138,6 +139,10 @@ export async function renderBillingPdf(doc: BillingDoc, settings: BillingSetting
     y -= 14;
     page.drawLine({ start: { x: M, y: y + 3 }, end: { x: W - M, y: y + 3 }, thickness: 0.4, color: LINE });
   }
+  y -= 2; text(NON_REFUNDABLE_NOTE, M, y, { color: BODY, size: 8.5, font: bold }); y -= 13;
+  // Staged jobs can always be paid off in one go.
+  const owingAll = doc.schedule.filter((stage) => stage.status !== "paid").reduce((sum, stage) => sum + stage.amountCents, 0);
+  if (doc.schedule.length > 1 && doc.status !== "paid" && doc.status !== "void" && owingAll > 0) { y -= 2; text(`Prefer to pay in one go? Pay the full ${money(owingAll)} at once (recommended).`, M, y, { color: BLUE, size: 9, font: bold }); y -= 14; }
   const due = doc.kind === "invoice" && doc.status === "sent" ? nextDueStage(doc) : undefined;
   if (due) {
     y -= 4;
@@ -270,7 +275,7 @@ export async function renderBillingPdf(doc: BillingDoc, settings: BillingSetting
   };
   if (doc.kind === "invoice" && doc.status !== "paid" && doc.status !== "void") {
     const reference = due && doc.schedule.length > 1 ? `${doc.number}-${doc.schedule.indexOf(due) + 1}` : doc.number;
-    const bank = settings.bsb && settings.accountNumber ? [`Bank transfer: ${settings.accountName || settings.businessName}${settings.bankName ? ` · ${settings.bankName}` : ""}`, `BSB ${settings.bsb} · Account ${settings.accountNumber}${settings.swift ? ` · SWIFT ${settings.swift} (overseas)` : ""}`, `Reference: ${reference}`] : [];
+    const bank = settings.bsb && settings.accountNumber ? [`Bank transfer: ${settings.accountName || settings.businessName}${settings.bankName ? ` · ${settings.bankName}` : ""}`, `BSB ${settings.bsb} · Account ${settings.accountNumber}${settings.swift ? ` · SWIFT ${settings.swift} (overseas)` : ""}`, `Reference: ${reference}`, ...(doc.schedule.length > 1 && due && owingAll > due.amountCents ? [`Amount: ${money(due.amountCents)} for the ${due.label.toLowerCase()}, or ${money(owingAll)} to pay in full (reference ${doc.number})`] : [])] : [];
     if (bank.length) block("PAY BY BANK TRANSFER", bank);
     linkBlock(getStripe() ? "PAY ONLINE" : "VIEW ONLINE", getStripe() ? "Pay by card, Apple Pay or Google Pay (click the link):" : "View this invoice online (click the link):", viewUrl);
   }

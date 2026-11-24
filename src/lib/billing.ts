@@ -48,9 +48,12 @@ const stagePlan: Record<"full" | "staged", { key: StageKey; label: string; perce
   ],
 };
 
+/** Jobs over this total (incl. GST) can be paid in stages (40 / 40 / 20); smaller ones are paid in full. Full payment is always offered. */
+export const STAGED_OVER_CENTS = 200_000;
+
 /** Fresh schedule for a total; the last stage absorbs rounding so the stages add up exactly. */
 export function buildSchedule(totalCents: number): PaymentStage[] {
-  const plan = stagePlan.staged;
+  const plan = totalCents > STAGED_OVER_CENTS ? stagePlan.staged : stagePlan.full;
   let allocated = 0;
   return plan.map((stage, index) => {
     const amountCents = index === plan.length - 1 ? totalCents - allocated : Math.round((totalCents * stage.percent) / 100);
@@ -259,7 +262,12 @@ const money = (cents: number) => `$${(cents / 100).toLocaleString("en-AU", { min
  * "request" makes an upcoming stage due, "paid" records it, "unpaid" reverses a payment.
  * The invoice becomes "paid" once every stage is paid.
  */
-export async function updateStage(id: string, key: StageKey, action: "request" | "paid" | "unpaid", by: string, reference = "", payment?: { method: PaymentMethod; byEmail?: string }) {
+/** Everything still owing on an invoice (the unpaid stages). */
+export const balanceDue = (doc: Pick<BillingDoc, "schedule">) => doc.schedule.filter((stage) => stage.status !== "paid").reduce((sum, stage) => sum + stage.amountCents, 0);
+
+/** key "all" with action "paid" = the customer paid the whole remaining balance at once: every unpaid stage is marked paid. */
+export async function updateStage(id: string, key: StageKey | "all", action: "request" | "paid" | "unpaid", by: string, reference = "", payment?: { method: PaymentMethod; byEmail?: string }) {
+  if (key === "all") return payRemaining(id, by, reference, payment);
   const ref = billing().doc(id);
   return db().runTransaction(async (tx) => {
     const snapshot = await tx.get(ref);
@@ -286,5 +294,26 @@ export async function updateStage(id: string, key: StageKey, action: "request" |
       updatedAt: FieldValue.serverTimestamp(), history: FieldValue.arrayUnion(event(by, allPaid && action === "paid" ? `${text}. Invoice paid in full` : text)),
     });
     return { ok: text, allPaid, stage, doc };
+  });
+}
+
+/** Marks every unpaid stage paid in one go (full payment). Idempotent: nothing left to pay = already recorded. */
+async function payRemaining(id: string, by: string, reference = "", payment?: { method: PaymentMethod; byEmail?: string }) {
+  const ref = billing().doc(id);
+  return db().runTransaction(async (tx) => {
+    const snapshot = await tx.get(ref);
+    if (!snapshot.exists) return { error: "Not found." };
+    const doc = toDoc(snapshot.id, snapshot.data()!);
+    if (doc.kind !== "invoice" || doc.status === "void" || doc.status === "draft") return { error: "That payment can't be changed." };
+    const owing = doc.schedule.filter((item) => item.status !== "paid");
+    if (!owing.length) return { ok: "Already recorded.", already: true };
+    const now = Date.now(), amount = owing.reduce((sum, item) => sum + item.amountCents, 0);
+    const schedule = doc.schedule.map((item) => item.status === "paid" ? item : { ...item, status: "paid" as const, requestedAt: item.requestedAt || now, paidAt: now, reference, method: payment?.method ?? "bank", paidBy: by, paidByEmail: payment?.byEmail ?? "" });
+    const text = `Paid in full: ${money(amount)} (${owing.map((item) => item.label.toLowerCase()).join(", ")}) · ${paymentMethodLabel[payment?.method ?? "bank"]}${reference ? ` · ${reference}` : ""}. Invoice paid in full`;
+    tx.update(ref, {
+      schedule: schedule.map((item) => Object.fromEntries(Object.entries(item).filter(([, value]) => value !== undefined))), paidCents: doc.totalCents, status: "paid", paidAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(), history: FieldValue.arrayUnion(event(by, text)),
+    });
+    return { ok: text, allPaid: true, stage: owing[0], doc };
   });
 }

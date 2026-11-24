@@ -19,7 +19,7 @@ import { addEnquiryNote } from "@/lib/services/enquiries";
 // EMAIL_FROM e.g. "Signsnwraps <sale@signsnwraps.com.au>" (default SMTP_USER)
 // Without SMTP settings in development, outgoing emails are printed to the server log instead.
 
-export type EmailContext = { type: "enquiry" | "order" | "user" | "billing"; id: string };
+export type EmailContext = { type: "enquiry" | "order" | "user" | "billing" | "purchaseOrder" | "installation"; id: string };
 export type EmailAttachment = { filename: string; content: Uint8Array; contentType: string };
 export type ThreadMessage = {
   id: string; direction: "out" | "in"; from: string; fromName: string; to: string; subject: string;

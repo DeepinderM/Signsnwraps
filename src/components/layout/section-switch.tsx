@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { ArrowRight, Car, Signpost } from "lucide-react";
 
 // Large Signs | Wraps switch shown directly below the header on every page except
-// the home page (which has its own chooser), admin and checkout flows.
-const HIDDEN = [/^\/$/, /^\/admin/, /^\/wraps\/checkout/, /^\/billing\//];
+// the home page (which has its own chooser), admin, the vendor dashboard and checkout flows.
+const HIDDEN = [/^\/$/, /^\/admin/, /^\/vendor/, /^\/wraps\/checkout/, /^\/billing\//];
 
 const sections = [
   { href: "/signs", title: "Signs & Print", detail: "Signage · Shopfronts · Printing · Neon · Fleet", icon: Signpost, match: (path: string) => path.startsWith("/signs") },

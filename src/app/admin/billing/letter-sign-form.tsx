@@ -3,11 +3,12 @@
 import { useState } from "react";
 import {
   ALUMINIUM_SIDE_COLOURS, CHANNEL_MOUNT, POWER_ADAPTER, adaptersFor, installationOptions, type Installation, FRONT_LIT_PREMIUM_MAX_MM, countLetters, frontLitConstruction, heightBand, letterBuilds, letterCode,
-  FRONT_LIT_DEPTHS, OFFERED_LIGHTS, letterDepths, letterDescription, letterLights, letterMaterials, letterPriceCents, letterProduction, letterRuleProblems, letterTypes,
+  FRONT_LIT_DEPTHS, OFFERED_LIGHTS, letterDepths, letterDescription, letterLights, letterMaterials, letterPriceCents, letterProduction, SMALL_NON_LIT, isSmallNonLit, smallLettersPerRow, smallNonLitCharge, letterRuleProblems, letterTypes,
   mountingOptions, RGB_SURCHARGE_PER_LETTER, SOLID_CODES, solidBuild, type LetterSpec, type Mounting,
 } from "@/lib/letter-signs";
 import type { PickedLine } from "./catalog-picker";
-import { PVC_MOUNT_PRICES, PVC_THICKNESSES, describeJobBill, panelName, planAcpJob, pvcMountPanels } from "@/lib/acp-panels";
+import { DEFAULT_ACP_SIZES, PVC_MOUNT_PRICES, PVC_THICKNESSES, acpPanelSet, describeJobBill, panelName, panelsForSet, planAcpJob, pvcMountPanels } from "@/lib/acp-panels";
+import { AcpPanelPicker } from "./acp-panel-picker";
 import { AcpDiagram } from "@/components/billing/acp-diagram";
 
 const money = (cents: number) => `$${(cents / 100).toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -34,7 +35,7 @@ export function LetterSignForm({ kind, onAdd, onBack }: { kind: "quote" | "invoi
   const [build, setBuild] = useState("Classic Front-lit");
   // One sign can have letters at different heights (e.g. "CARPRO" 600 mm + "AUT" 400 mm): one line per height.
   // Each line also has its own finish: face material (e.g. opal + vinyl or coloured acrylic), face colour, wall colour, LED.
-  type Group = { key: number; text: string; height: string; letters: string; face?: string; depth?: string; faceNote: string; sidesNote: string; ledNote: string };
+  type Group = { key: number; text: string; height: string; letters: string; perRow?: string; face?: string; depth?: string; faceNote: string; sidesNote: string; ledNote: string };
   const blankFinish = { faceNote: "", sidesNote: "", ledNote: "" };
   const [groups, setGroups] = useState<Group[]>([{ key: 1, text: "", height: "300", letters: "", ...blankFinish }]);
   const updateGroup = (key: number, change: Partial<Group>) => setGroups((current) => current.map((group) => (group.key === key ? { ...group, ...change } : group)));
@@ -47,6 +48,7 @@ export function LetterSignForm({ kind, onAdd, onBack }: { kind: "quote" | "invoi
   // Big jobs can take more than one day on site: the installation line is charged per day.
   const [installDays, setInstallDays] = useState("1");
   const [showAcpPlan, setShowAcpPlan] = useState(false);
+  const [acpSizes, setAcpSizes] = useState(DEFAULT_ACP_SIZES);
   const [pvcMount, setPvcMount] = useState<{ thickness: number; colour: "white" | "black" }>({ thickness: 16, colour: "white" });
 
   const frontLit = spec.light === "LF";
@@ -58,7 +60,11 @@ export function LetterSignForm({ kind, onAdd, onBack }: { kind: "quote" | "invoi
     const construction = frontLitConstruction(heightMm, frontLit ? group.depth : undefined);
     const face = flatSign ? spec.face : group.face ?? spec.face;
     const full: LetterSpec = { ...spec, face, heightMm, depth: frontLit ? construction.depthCode : spec.depth };
-    return { group, heightMm, construction, full, band: heightBand(heightMm), code: letterCode(full), problems: letterRuleProblems(full), perLetter: letterPriceCents(full), count: Number(group.letters) || countLetters(group.text) };
+    const count = Number(group.letters) || countLetters(group.text), perLetter = letterPriceCents(full);
+    // Small non-lit letters are charged by sheet row: first letter of each 1200 mm row $117, the rest $25.
+    const small = isSmallNonLit(spec.light, heightMm) ? { perRow: Number(group.perRow) || smallLettersPerRow(heightMm), autoPerRow: smallLettersPerRow(heightMm) } : null;
+    const charge = small ? smallNonLitCharge(count, small.perRow) : null;
+    return { group, heightMm, construction, full, band: heightBand(heightMm), code: letterCode(full), problems: letterRuleProblems(full), perLetter, count, small, charge, cents: charge ? charge.cents : (perLetter ?? 0) * count };
   });
   // The first line drives the shared controls (depth display, flat-cut factor).
   const { heightMm, full } = rows[0];
@@ -97,15 +103,15 @@ export function LetterSignForm({ kind, onAdd, onBack }: { kind: "quote" | "invoi
 
   const signW = Number(signSize.width) || 0, signH = Number(signSize.height) || 0;
   // ACP mounting uses the cheapest combination of panels that covers the overall sign.
-  // Panel mounting (ACP sheets, or 1220 x 2440 PVC sheets: white or black, 10/16/20 mm) uses the cheapest sheet plan.
+  // Panel mounting (ACP sheets, or 2440 x 1220 PVC sheets: white or black, 10/16/20 mm) uses the cheapest sheet plan.
   const onPanels = mounting === "acp" || mounting === "pvc";
-  const panelSet = mounting === "pvc" ? `pvc-${pvcMount.thickness}-${pvcMount.colour}` : undefined;
+  const panelSet = mounting === "pvc" ? `pvc-${pvcMount.thickness}-${pvcMount.colour}` : acpPanelSet(acpSizes);
   const panelLabel = mounting === "pvc" ? `${pvcMount.thickness} mm ${pvcMount.colour} PVC` : "ACP";
-  const acpPlan = onPanels && signW >= 50 && signH >= 50 ? planAcpJob(signW, signH, 1, mounting === "pvc" ? pvcMountPanels(pvcMount.thickness, pvcMount.colour) : undefined) : null;
+  const acpPlan = onPanels && signW >= 50 && signH >= 50 ? planAcpJob(signW, signH, 1, mounting === "pvc" ? pvcMountPanels(pvcMount.thickness, pvcMount.colour) : panelsForSet(panelSet)) : null;
   const panels = acpPlan?.count ?? 0;
   const mountingCents = onPanels ? acpPlan?.costCents ?? 0 : mounting === "channel" ? CHANNEL_MOUNT.priceCents : 0;
   const mountingReady = !onPanels || !!acpPlan;
-  const lettersCents = rows.reduce((sum, row) => sum + (row.perLetter ?? 0) * row.count, 0);
+  const lettersCents = rows.reduce((sum, row) => sum + row.cents, 0);
   // Lit letters need LED power adapters: one per 9 letters across the whole sign (all lines together).
   const adapters = adaptersFor(count, spec.light);
   const adaptersCents = adapters * POWER_ADAPTER.priceCents;
@@ -121,12 +127,15 @@ export function LetterSignForm({ kind, onAdd, onBack }: { kind: "quote" | "invoi
   function add() {
     if (!canAdd) return;
     const signText = rows.map((row) => row.group.text.trim()).filter(Boolean).join(" ");
+    // Small non-lit letters: one line for all of them at the row-based total; the row breakdown is internal (production notes only).
     rows.forEach((row, index) => onAdd({
-      description: letterDescription(row.full, row.group.text, jobNoteFor(row.group), mounting), qty: row.count, unitCents: row.perLetter ?? 0, code: row.code,
+      description: letterDescription(row.full, row.group.text, jobNoteFor(row.group), mounting),
+      ...(row.small ? { qty: 1, unitCents: row.cents } : { qty: row.count, unitCents: row.perLetter ?? 0 }), code: row.code,
       production: [letterProduction(row.full, mounting, acpPlan ? describeJobBill(acpPlan) : ""),
         rows.length > 1 && `Part of one sign "${signText}": ${rows.map((item) => `${item.group.text.trim() || "letters"} ${item.heightMm} mm`).join(" + ")}`,
         index === 0 && adapters && `Power: ${adapters} LED power adapter${adapters === 1 ? "" : "s"} for all ${count} letters on the sign (1 per ${POWER_ADAPTER.lettersPerAdapter})`,
-        row.group.text.trim() && `Text: "${row.group.text.trim()}" (${row.count} letters)`, jobNoteFor(row.group) && `Job note: ${jobNoteFor(row.group)}`].filter(Boolean).join("\n"),
+        row.group.text.trim() && `Text: "${row.group.text.trim()}" (${row.count} letters)`, jobNoteFor(row.group) && `Job note: ${jobNoteFor(row.group)}`,
+        row.small && row.charge && `Cut in ${row.charge.rows} row${row.charge.rows === 1 ? "" : "s"} of up to ${row.small.perRow} letters along ${SMALL_NON_LIT.rowMm} mm of the 1200 x 2400 sheet (priced ${row.charge.rows} × ${money(SMALL_NON_LIT.firstLetterCents)} + ${row.count - row.charge.rows} × ${money(SMALL_NON_LIT.nextLetterCents)}; internal)`].filter(Boolean).join("\n"),
     }));
     // Adapters, mounting and installation are added once for the whole sign.
     if (adapters) onAdd({ description: `LED power adapter\n1 adapter powers up to ${POWER_ADAPTER.lettersPerAdapter} letters (${count} letters on this sign)`, qty: adapters, unitCents: POWER_ADAPTER.priceCents, code: POWER_ADAPTER.code, production: `Supply and wire ${adapters} LED power adapter${adapters === 1 ? "" : "s"} for ${count} illuminated letters${rows.length > 1 ? ` (${rows.map((item) => `${item.count} at ${item.heightMm} mm`).join(" + ")})` : ""} (1 per ${POWER_ADAPTER.lettersPerAdapter})` });
@@ -169,7 +178,7 @@ export function LetterSignForm({ kind, onAdd, onBack }: { kind: "quote" | "invoi
         {flatMaterial === "ACRC" && <div className="field"><label htmlFor="ls-base">Base for extra depth</label><select id="ls-base" value={flatOption} onChange={(event) => pickFlat("ACRC", event.target.value)}>
           <option value="none">None (3 mm coloured only)</option><option value="ACRW-D05">5 mm white acrylic base (8 mm total)</option><option value="ACRB-D05">5 mm black acrylic base (8 mm total)</option><option value="ACRW-D10">10 mm white acrylic base (13 mm total)</option><option value="ACRB-D10">10 mm black acrylic base (13 mm total)</option>
         </select></div>}
-        {flat && (() => { const solid = solidBuild(full); const band = heightBand(heightMm); return solid && "multiplier" in solid ? <div className="field"><span className="ls-label">Price factor</span><span className="ls-panels ls-adapters">×{solid.multiplier.toFixed(2)} of white PVC 10 mm</span><small>{band ? `$${band.noLight.toFixed(2)} → $${(band.noLight * solid.multiplier).toFixed(2)} per letter` : ""}</small></div> : null; })()}
+        {flat && (() => { const solid = solidBuild(full); const band = heightBand(heightMm); return solid && "multiplier" in solid ? <div className="field"><span className="ls-label">Price factor</span><span className="ls-panels ls-adapters">×{solid.multiplier.toFixed(2)} of white PVC 10 mm</span><small>{isSmallNonLit(spec.light, heightMm) ? `${SMALL_NON_LIT.maxMm} mm and under: by sheet row, not by material` : band ? `$${band.noLight.toFixed(2)} → $${(band.noLight * solid.multiplier).toFixed(2)} per letter` : ""}</small></div> : null; })()}
       </div>
       {flat && <p className="admin-hint">{(() => { const solid = solidBuild(full); return solid && "multiplier" in solid ? solid.client : ""; })()}</p>}
     </fieldset>}
@@ -186,7 +195,8 @@ export function LetterSignForm({ kind, onAdd, onBack }: { kind: "quote" | "invoi
         <div className="field ls-wide"><label htmlFor={index ? `ls-text-${row.group.key}` : "ls-text"}>{rows.length > 1 ? `Letters ${index + 1}` : "Sign text"}</label><input id={index ? `ls-text-${row.group.key}` : "ls-text"} value={row.group.text} onChange={(event) => updateGroup(row.group.key, { text: event.target.value })} placeholder={index ? "e.g. AUT" : "e.g. CARPRO"} maxLength={120} /><small>{row.group.text ? `${countLetters(row.group.text)} letters (spaces are free)` : "Letters are counted for you; spaces are free."}</small></div>
         <div className="field"><label htmlFor={index ? `ls-height-${row.group.key}` : "ls-height"}>Tallest letter (mm)</label><input id={index ? `ls-height-${row.group.key}` : "ls-height"} inputMode="numeric" value={row.group.height} onChange={(event) => updateGroup(row.group.key, { height: digits(event.target.value) })} /><small>{row.band ? `${row.band.code} band (up to ${row.band.upTo} mm)` : row.heightMm > 1000 ? "Over 1000 mm: price on application" : ""}</small></div>
         <div className="field"><label htmlFor={index ? `ls-count-${row.group.key}` : "ls-count"}>Letters to charge</label><input id={index ? `ls-count-${row.group.key}` : "ls-count"} inputMode="numeric" value={row.group.letters} onChange={(event) => updateGroup(row.group.key, { letters: digits(event.target.value) })} placeholder={String(countLetters(row.group.text) || "")} /><small>Override, e.g. for a logo</small></div>
-        <div className="field ls-group-price"><span className="ls-label">{row.count || 0} × {row.perLetter === null ? "POA" : money(row.perLetter)}</span><b>{row.perLetter === null ? "—" : money(row.perLetter * row.count)}</b>{rows.length > 1 && <button type="button" className="bill-remove" onClick={() => setGroups((current) => current.filter((group) => group.key !== row.group.key))} aria-label={`Remove letters ${index + 1}`}>Remove</button>}</div>
+        {row.small && <div className="field"><label htmlFor={`ls-perrow-${row.group.key}`}>Letters per row</label><input id={`ls-perrow-${row.group.key}`} inputMode="numeric" value={row.group.perRow ?? ""} onChange={(event) => updateGroup(row.group.key, { perRow: digits(event.target.value) })} placeholder={String(row.small.autoPerRow)} /><small>Fit on a {SMALL_NON_LIT.rowMm} mm sheet row</small></div>}
+        <div className="field ls-group-price"><span className="ls-label">{row.small && row.charge ? `${row.charge.rows} × ${money(SMALL_NON_LIT.firstLetterCents)} + ${Math.max(0, row.count - row.charge.rows)} × ${money(SMALL_NON_LIT.nextLetterCents)}` : `${row.count || 0} × ${row.perLetter === null ? "POA" : money(row.perLetter)}`}</span><b>{row.perLetter === null ? "—" : money(row.cents)}</b>{row.small && row.charge && row.charge.rows > 0 && <small>{row.charge.rows} sheet row{row.charge.rows === 1 ? "" : "s"}: first letter of each row {money(SMALL_NON_LIT.firstLetterCents)}, the rest {money(SMALL_NON_LIT.nextLetterCents)}</small>}{rows.length > 1 && <button type="button" className="bill-remove" onClick={() => setGroups((current) => current.filter((group) => group.key !== row.group.key))} aria-label={`Remove letters ${index + 1}`}>Remove</button>}</div>
         <div className="ls-finish">
           <span className="ls-finish-title">Finish{row.group.text.trim() ? ` for "${row.group.text.trim()}"` : ""}</span>
           {frontLit && <div className="field"><label htmlFor={`ls-depth-${row.group.key}`}>Return depth</label><select id={`ls-depth-${row.group.key}`} value={row.group.depth ?? ""} onChange={(event) => updateGroup(row.group.key, { depth: event.target.value || undefined })}>
@@ -214,11 +224,12 @@ export function LetterSignForm({ kind, onAdd, onBack }: { kind: "quote" | "invoi
 
     <fieldset className="ls-note"><legend>Mounting</legend>
       <div className="ls-mount">{mountingOptions.map((option) => <label key={option.value} className={mounting === option.value ? "is-on" : ""}><input type="radio" name="ls-mounting" checked={mounting === option.value} onChange={() => setMounting(option.value)} />
-        <span><b>{option.name}</b><small>{option.value === "wall" ? "No extra charge" : option.value === "acp" ? "Cheapest panel combination for the sign size" : option.value === "pvc" ? `1220 × 2440 sheets · white ${money(PVC_MOUNT_PRICES.white)}, black ${money(PVC_MOUNT_PRICES.black)}` : `${money(CHANNEL_MOUNT.priceCents)}`}</small></span></label>)}</div>
+        <span><b>{option.name}</b><small>{option.value === "wall" ? "No extra charge" : option.value === "acp" ? "Cheapest panel combination for the sign size" : option.value === "pvc" ? `2440 × 1220 sheets · white ${money(PVC_MOUNT_PRICES.white)}, black ${money(PVC_MOUNT_PRICES.black)}` : `${money(CHANNEL_MOUNT.priceCents)}`}</small></span></label>)}</div>
       {mounting === "pvc" && <div className="ls-grid">
         <div className="field"><label htmlFor="ls-pvc-colour">PVC colour</label><select id="ls-pvc-colour" value={pvcMount.colour} onChange={(event) => setPvcMount({ ...pvcMount, colour: event.target.value as "white" | "black" })}><option value="white">White · {money(PVC_MOUNT_PRICES.white)} per sheet</option><option value="black">Black · {money(PVC_MOUNT_PRICES.black)} per sheet</option></select></div>
-        <div className="field"><label htmlFor="ls-pvc-thick">PVC thickness</label><select id="ls-pvc-thick" value={pvcMount.thickness} onChange={(event) => setPvcMount({ ...pvcMount, thickness: Number(event.target.value) })}>{PVC_THICKNESSES.map((mm) => <option key={mm} value={mm}>{mm} mm</option>)}</select><small>1220 × 2440 mm sheets, same price for 10, 16 and 20 mm</small></div>
+        <div className="field"><label htmlFor="ls-pvc-thick">PVC thickness</label><select id="ls-pvc-thick" value={pvcMount.thickness} onChange={(event) => setPvcMount({ ...pvcMount, thickness: Number(event.target.value) })}>{PVC_THICKNESSES.map((mm) => <option key={mm} value={mm}>{mm} mm</option>)}</select><small>2440 × 1220 mm sheets, same price for 10, 16 and 20 mm</small></div>
       </div>}
+      {mounting === "acp" && <AcpPanelPicker id="ls-acp-sizes" value={acpSizes} onChange={setAcpSizes} />}
       {onPanels && <div className="ls-grid">
         <div className="field"><label htmlFor="ls-sw">Overall sign width (mm)</label><input id="ls-sw" inputMode="numeric" value={signSize.width} onChange={(event) => setSignSize({ ...signSize, width: digits(event.target.value) })} placeholder="e.g. 3000" /></div>
         <div className="field"><label htmlFor="ls-sh">Overall sign height (mm)</label><input id="ls-sh" inputMode="numeric" value={signSize.height} onChange={(event) => setSignSize({ ...signSize, height: digits(event.target.value) })} placeholder="e.g. 600" /></div>
@@ -250,7 +261,7 @@ export function LetterSignForm({ kind, onAdd, onBack }: { kind: "quote" | "invoi
     </fieldset>
 
     {anyPoa ? <p className="admin-error">Over 1000 mm is price on application: add a custom line with your price.</p>
-      : <div className="cat-price ls-total"><span>{rows.length > 1 ? `${count || 0} letters (${rows.map((row) => `${row.count} × ${row.perLetter === null ? "POA" : money(row.perLetter)}`).join(" + ")})` : `${count || 0} letters × ${money(rows[0].perLetter ?? 0)}`}{adapters ? ` + ${adapters} adapter${adapters === 1 ? "" : "s"} ${money(adaptersCents)}` : ""}{mountingCents ? ` + ${onPanels ? `${panels} ${panelLabel} panel${panels === 1 ? "" : "s"}` : "channels"} ${money(mountingCents)}` : ""}{installCents ? ` + installation${days > 1 ? ` ${days} days` : ""} ${money(installCents)}` : ""}</span><b>{money(lettersCents + extrasCents)}</b><small>{spec.light === "LRGB" && !RGB_SURCHARGE_PER_LETTER ? "RGB surcharge isn't set in the catalog yet; adjust the price if needed." : "ex GST"}</small></div>}
+      : <div className="cat-price ls-total"><span>{rows.length > 1 ? `${count || 0} letters (${rows.map((row) => row.small ? `${row.count} small ${money(row.cents)}` : `${row.count} × ${row.perLetter === null ? "POA" : money(row.perLetter)}`).join(" + ")})` : rows[0].small ? `${count || 0} letters in ${rows[0].charge?.rows ?? 0} sheet row${rows[0].charge?.rows === 1 ? "" : "s"} ${money(rows[0].cents)}` : `${count || 0} letters × ${money(rows[0].perLetter ?? 0)}`}{adapters ? ` + ${adapters} adapter${adapters === 1 ? "" : "s"} ${money(adaptersCents)}` : ""}{mountingCents ? ` + ${onPanels ? `${panels} ${panelLabel} panel${panels === 1 ? "" : "s"}` : "channels"} ${money(mountingCents)}` : ""}{installCents ? ` + installation${days > 1 ? ` ${days} days` : ""} ${money(installCents)}` : ""}</span><b>{money(lettersCents + extrasCents)}</b><small>{spec.light === "LRGB" && !RGB_SURCHARGE_PER_LETTER ? "RGB surcharge isn't set in the catalog yet; adjust the price if needed." : "ex GST"}</small></div>}
     <button type="button" className="button button-orange" disabled={!canAdd} onClick={add}>{problems.length ? "Fix the build to add it" : !count ? "Enter the sign text" : !mountingReady ? "Enter the sign size for ACP panels" : `Add to ${kind}`}</button>
   </div>;
 }

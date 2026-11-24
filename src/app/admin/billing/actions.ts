@@ -4,9 +4,15 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin, requireSuperAdmin, type Admin } from "@/lib/admin-auth";
 import {
-  addDays, channelFor, createBillingDoc, isEditable, updateStage, type BillingOrigin, type StageKey, getBillingDoc, getBillingSettings, saveBillingSettings, setBillingStatus, todayIso, updateBillingDoc,
+  channelFor, createBillingDoc, isEditable, updateStage, type BillingOrigin, type StageKey, getBillingDoc, saveBillingSettings, setBillingStatus, updateBillingDoc,
   type BillingDoc, type BillingDraft, type Discount, type BillingKind, type LineItem,
 } from "@/lib/billing";
+import { ACP_SET_PATTERN } from "@/lib/acp-panels";
+import { invoiceFromQuote } from "@/lib/billing-auto";
+import { priceProblem } from "@/lib/price-check";
+import { listCatalog } from "@/lib/catalog";
+import { ensurePurchaseOrder } from "@/lib/purchase-orders";
+import { ensureInstallation, needsInstallation } from "@/lib/installations";
 import { addEnquiryNote, getEnquiry } from "@/lib/services/enquiries";
 import { isStoreId } from "@/lib/staff";
 import { isEmail } from "@/lib/validation";
@@ -44,7 +50,7 @@ function parseItems(raw: string): LineItem[] | null {
       if (typeof code === "string" && code.trim()) line.code = code.trim().toUpperCase().replace(/[^A-Z0-9._/-]+/g, "").slice(0, 80);
       if (typeof production === "string" && production.trim()) line.production = production.trim().slice(0, 2000);
       const { acp } = (item ?? {}) as { acp?: { widthMm?: unknown; heightMm?: unknown; signs?: unknown; showDiagram?: unknown; panelSet?: unknown } };
-      if (acp && typeof acp.widthMm === "number" && typeof acp.heightMm === "number" && acp.widthMm > 0 && acp.heightMm > 0 && acp.widthMm <= 30000 && acp.heightMm <= 30000) line.acp = { widthMm: Math.round(acp.widthMm), heightMm: Math.round(acp.heightMm), ...(typeof acp.signs === "number" && acp.signs >= 1 && acp.signs <= 200 ? { signs: Math.round(acp.signs) } : {}), ...(acp.showDiagram === true ? { showDiagram: true } : {}), ...(typeof acp.panelSet === "string" && /^pvc-(10|16|20)-(white|black)$/.test(acp.panelSet) ? { panelSet: acp.panelSet } : {}) };
+      if (acp && typeof acp.widthMm === "number" && typeof acp.heightMm === "number" && acp.widthMm > 0 && acp.heightMm > 0 && acp.widthMm <= 30000 && acp.heightMm <= 30000) line.acp = { widthMm: Math.round(acp.widthMm), heightMm: Math.round(acp.heightMm), ...(typeof acp.signs === "number" && acp.signs >= 1 && acp.signs <= 200 ? { signs: Math.round(acp.signs) } : {}), ...(acp.showDiagram === true ? { showDiagram: true } : {}), ...(typeof acp.panelSet === "string" && (/^pvc-(10|16|20)-(white|black)$/.test(acp.panelSet) || ACP_SET_PATTERN.test(acp.panelSet)) ? { panelSet: acp.panelSet } : {}) };
       if (roll && typeof roll === "object") {
         const { widthMm, heightMm, rollWidthMm, pricePerM2Cents, showDiagram } = roll as Record<string, unknown>;
         const okNumber = (value: unknown, max: number) => typeof value === "number" && Number.isFinite(value) && value > 0 && value <= max;
@@ -92,6 +98,20 @@ export async function saveBilling(_: BillingResult, form: FormData): Promise<Bil
   if (discount === undefined) return { error: "Check the discount: a % from 0 to 100, or an amount that isn't more than the subtotal." };
   const subtotal = items.reduce((sum, item) => sum + Math.round(item.qty * item.unitCents), 0);
   if (discount?.type === "amount" && discount.value > subtotal) return { error: "The discount can't be more than the subtotal." };
+  // Only super admins set prices. Store staff keep the prices already on the document, can't add or change a discount,
+  // and every line they add must cost exactly what the catalog or a calculator charges (checked again here).
+  if (admin.role !== "super") {
+    const sameDiscount = JSON.stringify(discount ?? null) === JSON.stringify(existing?.discount ?? null);
+    if (!sameDiscount) return { error: "Only a super admin can add or change a discount." };
+    const pool = [...(existing?.items ?? [])];
+    const catalog = await listCatalog({ activeOnly: true });
+    for (const [index, item] of items.entries()) {
+      const kept = pool.findIndex((old) => old.unitCents === item.unitCents && old.gst === item.gst && (old.code ?? "") === (item.code ?? ""));
+      if (kept >= 0) { pool.splice(kept, 1); continue; }
+      const problem = priceProblem(item, catalog, items);
+      if (problem) return { error: `Line ${index + 1} (“${item.description.split("\n")[0].slice(0, 60)}”): ${problem}. Only a super admin can change prices. Add it from the catalog instead.` };
+    }
+  }
   const draft: BillingDraft = { store, customer, items, discount, title: field(form, "title", 200), notes: field(form, "notes", 3000), issueDate, dueDate, enquiryId, userId: existing?.userId ?? field(form, "userId", 128) };
 
   if (existing) {
@@ -124,7 +144,7 @@ export async function updateBillingStatus(_: BillingResult, form: FormData): Pro
   const action = field(form, "action", 20);
   const by = who(admin);
   const allowed: Record<string, () => Promise<string>> = doc.kind === "quote" ? {
-    accepted: async () => { await setBillingStatus(doc.id, { status: "accepted", respondedAt: true }, by, "Marked accepted"); return "Marked as accepted."; },
+    accepted: async () => { await setBillingStatus(doc.id, { status: "accepted", respondedAt: true }, by, "Marked accepted"); await ensurePurchaseOrder(doc, by).catch(() => undefined); if (needsInstallation(doc)) await ensureInstallation(doc, by).catch(() => undefined); return "Marked as accepted. A draft purchase order is ready."; },
     declined: async () => { await setBillingStatus(doc.id, { status: "declined", respondedAt: true }, by, "Marked declined"); return "Marked as declined."; },
     expired: async () => { await setBillingStatus(doc.id, { status: "expired" }, by, "Marked expired"); return "Marked as expired."; },
     reopen: async () => { await setBillingStatus(doc.id, { status: doc.sentAt ? "sent" : "draft" }, by, "Reopened"); return "Reopened."; },
@@ -147,13 +167,7 @@ export async function updateBillingStatus(_: BillingResult, form: FormData): Pro
 export async function convertToInvoice(form: FormData) {
   const { admin, doc } = await accessible(form);
   if (!doc || doc.kind !== "quote" || doc.status === "invoiced" || doc.status === "declined") return;
-  const settings = await getBillingSettings();
-  const issueDate = todayIso();
-  // The invoice keeps the quote's lead channel so the sale is credited to the original source.
-  const origin: BillingOrigin = { ...doc.origin, kind: "quote", label: `Quote ${doc.number}${doc.origin.kind === "enquiry" ? ` (${doc.origin.label})` : ""}`, ...creator(admin) };
-  const created = await createBillingDoc("invoice", { store: doc.store, customer: doc.customer, items: doc.items, discount: doc.discount, title: doc.title, notes: doc.notes, issueDate, dueDate: addDays(issueDate, settings.paymentTermsDays), enquiryId: doc.enquiryId, userId: doc.userId }, who(admin), { fromQuoteId: doc.id, origin });
-  await setBillingStatus(doc.id, { status: "invoiced", invoiceId: created.id }, who(admin), `Converted to invoice ${created.number}`);
-  if (doc.enquiryId) await addEnquiryNote(doc.enquiryId, `Quote ${doc.number} converted to invoice ${created.number}`, who(admin)).catch(() => undefined);
+  const created = await invoiceFromQuote(doc, who(admin), creator(admin));
   redirect(`/admin/billing/${created.id}?created=1`);
 }
 
@@ -180,9 +194,10 @@ export async function saveSettings(_: BillingResult, form: FormData): Promise<Bi
 export async function updatePaymentStage(_: BillingResult, form: FormData): Promise<BillingResult> {
   const { admin, doc } = await accessible(form);
   if (!doc || doc.kind !== "invoice") return { error: "This invoice isn't available to you." };
-  const key = field(form, "stage", 20) as StageKey;
+  const key = field(form, "stage", 20) as StageKey | "all";
   const action = field(form, "action", 10);
-  if (!["full", "deposit", "installation", "completion"].includes(key) || !["request", "paid", "unpaid"].includes(action)) return { error: "That change isn't available." };
+  // "all" = the customer paid the whole remaining balance (only as a payment).
+  if (!["full", "deposit", "installation", "completion", "all"].includes(key) || !["request", "paid", "unpaid"].includes(action) || (key === "all" && action !== "paid")) return { error: "That change isn't available." };
   if (doc.status === "draft" && action !== "request") return { error: "Send the invoice before recording payments." };
   const reference = field(form, "reference", 80);
   // Staff record cash or bank transfer payments; online card payments are recorded by the Stripe webhook.

@@ -58,7 +58,7 @@ const nextConfig: NextConfig = {
     // Photos, videos and posters in /media: browsers keep them a week and refresh quietly after that.
     const mediaCache = [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=2592000" }];
     return [
-      ...["/billing/:path*", "/admin/:path*", "/account/:path*", "/api/:path*"].map((source) => ({ source, headers: noindex })),
+      ...["/billing/:path*", "/admin/:path*", "/account/:path*", "/vendor/:path*", "/vendor", "/api/:path*"].map((source) => ({ source, headers: noindex })),
       { source: "/media/:path*", headers: mediaCache },
     ];
   },

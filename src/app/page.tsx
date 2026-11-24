@@ -4,6 +4,7 @@ import { pageMetadata, SITE } from "@/lib/seo";
 import { HomeChooser } from "@/components/home/home-chooser";
 import { FaqSection } from "@/components/seo/faq-section";
 import { BrandScrollStory } from "@/components/home/brand-scroll-story";
+import { HomeCaseStudies } from "@/components/case-studies/home-case-studies";
 
 export const metadata: Metadata = pageMetadata({ title: "Signsnwraps | Signage, Vehicle Wraps & PPF in Melbourne", description: "Signage, printing, vehicle wraps, fleet branding and paint protection film from one Laverton North studio in Melbourne. Book a consultation or shop PPF kits.", path: "/", absoluteTitle: true });
 
@@ -18,6 +19,7 @@ export default function HomePage() {
   return <>
     <HomeChooser />
     <BrandScrollStory />
+    <HomeCaseStudies />
     <section className="section home-about"><div className="container">
       <div className="home-about-lead"><span className="eyebrow">WHO WE ARE</span><h2 className="heading-lg">One studio for signs, print, wraps and protection.</h2><p className="body-lg">{SITE.summary}</p></div>
       <div className="home-pillars">{pillars.map((pillar, index) => <article key={pillar.title}><span>0{index + 1}</span><h3>{pillar.title}</h3><p>{pillar.text}</p><ul>{pillar.links.map(([label, href]) => <li key={href}><Link href={href}>{label}</Link></li>)}</ul></article>)}</div>

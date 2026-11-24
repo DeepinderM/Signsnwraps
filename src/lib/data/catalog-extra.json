@@ -135,32 +135,32 @@
  },
  {
   "id": "acp-panel-1220x2440",
-  "name": "ACP panel 1220 x 2440 mm, vinyl printed & laminated",
+  "name": "ACP panel 2440 x 1220 mm, vinyl printed & laminated",
   "category": "ACP Panels",
   "priceCents": 45000,
   "unit": "panel",
   "code": "ACP-1224",
-  "production": "ACP panel 1220 x 2440 mm: print vinyl to artwork, laminate, apply to panel",
+  "production": "ACP panel 2440 x 1220 mm: print vinyl to artwork, laminate, apply to panel",
   "options": []
  },
  {
   "id": "acp-panel-1220x3050",
-  "name": "ACP panel 1220 x 3050 mm, vinyl printed & laminated",
+  "name": "ACP panel 3050 x 1220 mm, vinyl printed & laminated",
   "category": "ACP Panels",
   "priceCents": 55000,
   "unit": "panel",
   "code": "ACP-1230",
-  "production": "ACP panel 1220 x 3050 mm: print vinyl to artwork, laminate, apply to panel",
+  "production": "ACP panel 3050 x 1220 mm: print vinyl to artwork, laminate, apply to panel",
   "options": []
  },
  {
   "id": "acp-panel-1500x3000",
-  "name": "ACP panel 1500 x 3000 mm, vinyl printed & laminated",
+  "name": "ACP panel 3000 x 1500 mm, vinyl printed & laminated",
   "category": "ACP Panels",
   "priceCents": 55000,
   "unit": "panel",
   "code": "ACP-1530",
-  "production": "ACP panel 1500 x 3000 mm: print vinyl to artwork, laminate, apply to panel",
+  "production": "ACP panel 3000 x 1500 mm: print vinyl to artwork, laminate, apply to panel",
   "options": []
  },
  {

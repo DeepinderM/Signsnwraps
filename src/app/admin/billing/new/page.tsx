@@ -33,6 +33,6 @@ export default async function NewBillingPage({ searchParams }: { searchParams: P
     <AdminNav admin={{ email: admin.email, role: admin.role, store: admin.store }} />
     <Link className="text-link" href={allowedEnquiry ? `/admin/enquiries/${allowedEnquiry.id}` : `/admin/billing?kind=${kind}`}>← {allowedEnquiry ? "Back to enquiry" : "Quotes & invoices"}</Link>
     <div className="admin-head"><div><h1>New {kind === "quote" ? "quote" : settings.gstRegistered ? "tax invoice" : "invoice"}</h1><p>{allowedEnquiry ? `For ${allowedEnquiry.name}'s ${allowedEnquiry.service.toLowerCase()} enquiry. ` : ""}A number is assigned when you create it.</p></div></div>
-    <BillingEditor catalog={catalog} kind={kind} gstRegistered={settings.gstRegistered} stores={admin.role === "super" ? stores : null} initial={initial} />
+    <BillingEditor catalog={catalog} kind={kind} gstRegistered={settings.gstRegistered} canEditPrices={admin.role === "super"} stores={admin.role === "super" ? stores : null} initial={initial} />
   </>;
 }

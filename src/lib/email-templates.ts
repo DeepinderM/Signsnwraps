@@ -1,3 +1,4 @@
+import { NON_REFUNDABLE_NOTE } from "@/lib/payment-methods";
 export type EmailTemplate = { label: string; subject: string; body: string };
 
 // Starting points for staff emails. Everything is editable before sending.
@@ -42,7 +43,7 @@ export function billingTemplates(input: { kind: "quote" | "invoice"; number: str
   const end = signOff(input.staff);
   const what = input.title ? ` for ${input.title}` : "";
   const staged = input.schedule.length > 1;
-  const terms = staged ? `Payment terms:\n${scheduleLines(input.schedule)}` : `Payment is due in full before work starts.`;
+  const terms = `${staged ? `Payment terms:\n${scheduleLines(input.schedule)}\n\nPrefer to pay in one go? You can pay the full ${input.total} at once (recommended): just choose "Pay in full" online.` : `Payment is due in full before work starts.`}\n${NON_REFUNDABLE_NOTE}`;
   if (input.kind === "quote") return [
     { label: "Send quote", subject: `Quote ${input.number}${what} from Signsnwraps`, body: `${hi}Thanks for the opportunity to quote${what}. Your quote ${input.number} is attached (total ${input.total} incl. GST, valid until ${input.due}).\n\n${terms}\n\nYou can view and accept it online here:\n${input.link}\n\nHappy to answer any questions. Just reply to this email.${end}` },
     { label: "Quote follow-up", subject: `Following up on quote ${input.number}`, body: `${hi}Just checking in on quote ${input.number}${what}. It's valid until ${input.due}.\n\nView or accept it here:\n${input.link}\n\nLet me know if you'd like any changes.${end}` },

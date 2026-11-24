@@ -7,6 +7,7 @@ import { serviceLd } from "@/lib/seo";
 import { HeroVideo } from "@/components/media/hero-video";
 import { MediaGallery } from "@/components/media/media-gallery";
 import { media, videos } from "@/lib/data/media";
+import { CaseStudyHighlights } from "@/components/case-studies/case-study-highlights";
 
 // Shared layout for /signs/fleet and /wraps/fleet; content comes from fleetSides in src/lib/data/fleet.ts.
 // Real fleet work: signs side leans to lettering and graphics, wraps side to full wraps and livery.
@@ -46,6 +47,7 @@ export function FleetPage({ side }: { side: FleetSide }) {
     </div></section>
 
     <MediaGallery eyebrow="FLEETS WE'VE BRANDED" title="On the road across Victoria." intro="Trucks, trailers, coaches, vans and utes branded to stay consistent across the whole fleet." images={fleetGallery[side]} />
+    <CaseStudyHighlights tag="fleet" title="Fleet and ute case studies." />
     <FaqSection eyebrow="FLEET QUESTIONS" title="Fleet questions, answered." intro={content.intro} items={content.faqs.map(([question, answer]) => ({ question, answer }))} />
 
     <style>{`

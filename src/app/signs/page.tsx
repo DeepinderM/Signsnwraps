@@ -10,6 +10,7 @@ import { media, videos } from "@/lib/data/media";
 import { BrandStorySection } from "@/components/sections/brand-story";
 import { ProudPartners } from "@/components/sections/proud-partners";
 import { FaqSection } from "@/components/seo/faq-section";
+import { CaseStudyHighlights } from "@/components/case-studies/case-study-highlights";
 
 export const metadata: Metadata = pageMetadata({ title: "Signage & Printing Melbourne", description: "Shopfront and building signs, printing, neon and fleet signage, planned, made and installed by Signsnwraps in Laverton North, Melbourne. Get expert advice.", path: "/signs" });
 
@@ -93,6 +94,7 @@ export default function SignsHomePage() {
         <div className="signs-fleet-actions"><Link className="button button-orange" href="/signs/fleet#fleet-book">Book a Fleet Consultation</Link><Link className="button signs-outline" href="/signs/fleet#fleet-quote">Get a Fleet Quote</Link><Link className="text-link" href="/signs/fleet">Explore fleet signage</Link></div>
       </div>
     </section>
+    <CaseStudyHighlights tag="signs" title="Signage projects, start to finish." />
     <FaqSection page="signs" />
     <ConsultationCTA title="Have a signage project in mind?" text="Book a signage consultation in Laverton North. We'll help you plan with confidence."/>
 

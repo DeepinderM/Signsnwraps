@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { FileDown } from "lucide-react";
-import { discountLabel, formatDate, getBillingDocByToken, getBillingSettings, isOverdue, nextDueStage, statusLabel, todayIso } from "@/lib/billing";
+import { balanceDue, discountLabel, formatDate, getBillingDocByToken, getBillingSettings, isOverdue, nextDueStage, statusLabel, todayIso } from "@/lib/billing";
 import { recordInvoicePayment } from "@/lib/billing-payments";
 import { getStripe } from "@/lib/stripe";
 import { getAdmin } from "@/lib/admin-auth";
 import { formatAud } from "@/lib/shop/catalog";
 import { payInvoice } from "./actions";
+import { NON_REFUNDABLE_NOTE } from "@/lib/payment-methods";
 import { QuoteResponse } from "./quote-response";
 import { CreditCard, Lock } from "lucide-react";
 import { PaymentMarks } from "@/components/shop/payment-marks";
@@ -41,6 +42,9 @@ export default async function BillingViewPage({ params, searchParams }: { params
   const staffPreview = preview ? <div className="doc-preview" role="status"><b>Draft preview</b> · Only staff can see this. The customer can open this link once the {isQuote ? "quote" : "invoice"} is sent. <a href={`/admin/billing/${doc.id}`}>Back to admin</a></div> : null;
   const due = !isQuote && doc.status === "sent" ? nextDueStage(doc) : undefined;
   const canPay = !!due && balance > 0;
+  // Staged invoices (over $2,000) can always be paid off in full: offered first whenever more than the current stage is owing.
+  const owing = balanceDue(doc);
+  const offerFull = !isQuote && doc.status === "sent" && doc.schedule.length > 1 && owing > (due?.amountCents ?? 0) && owing > 0;
   const staged = doc.schedule.length > 1;
   const reference = due && staged ? `${doc.number}-${doc.schedule.indexOf(due) + 1}` : doc.number;
 
@@ -75,7 +79,8 @@ export default async function BillingViewPage({ params, searchParams }: { params
           </div> : null)}
         </div>}
         <div className="doc-schedule"><h2>Payment schedule</h2>
-          <p>{staged ? doc.schedule.map((stage) => `${stage.label} (${stage.percent}%) ${stage.when.toLowerCase()}`).join(" · ") : "Paid in full before work starts."}</p>
+          <p>{staged ? `${doc.schedule.map((stage) => `${stage.label} (${stage.percent}%) ${stage.when.toLowerCase()}`).join(" · ")}. Or pay the full amount at once.` : "Paid in full before work starts."}</p>
+          <p className="doc-refund-note">{NON_REFUNDABLE_NOTE}</p>
           <ol>{doc.schedule.map((stage) => <li key={stage.key} className={isQuote ? "" : `is-${stage.status}`}>
             <span><b>{stage.label}{stage.percent < 100 ? ` · ${stage.percent}%` : ""}</b><small>{stage.when}</small></span>
             <span className="doc-stage-amount">{formatAud(stage.amountCents)}{!isQuote && <em>{stage.status === "paid" ? "Paid" : stage.status === "due" ? "Due now" : "Later"}</em>}</span>
@@ -91,13 +96,24 @@ export default async function BillingViewPage({ params, searchParams }: { params
         {isQuote && !canRespond && !preview && <><h2>{statusLabel(doc)}</h2><p>{doc.status === "accepted" || doc.status === "invoiced" ? "Thanks, this quote has been accepted. We'll be in touch about scheduling." : doc.status === "declined" ? "This quote was declined. Contact us if you'd like an updated quote." : "This quote has expired. Contact us for an updated quote."}</p></>}
         {!isQuote && doc.status === "paid" && <><h2>Paid</h2><p>Thank you. This invoice has been paid in full.</p></>}
         {!isQuote && doc.status === "void" && <><h2>Cancelled</h2><p>This invoice has been cancelled. No payment is needed.</p></>}
-        {!isQuote && doc.status === "sent" && !due && <><h2>Nothing due right now</h2><p>Thanks, you're up to date. We'll let you know when the next payment ({doc.schedule.find((stage) => stage.status === "upcoming")?.label.toLowerCase()}) is due.</p></>}
-        {canPay && due && <><h2>Pay {formatAud(due.amountCents)}</h2><p className="doc-due-note">{due.label}{staged ? ` (${due.percent}%)` : ""} · {due.when.toLowerCase()}{doc.paidCents > 0 ? ` · ${formatAud(doc.paidCents)} paid so far` : ""}</p>
+        {!isQuote && doc.status === "sent" && !due && !offerFull && <><h2>Nothing due right now</h2><p>Thanks, you're up to date. We'll let you know when the next payment ({doc.schedule.find((stage) => stage.status === "upcoming")?.label.toLowerCase()}) is due.</p></>}
+        {(canPay || offerFull) && <>
+          <h2>{offerFull ? "How would you like to pay?" : `Pay ${formatAud(due!.amountCents)}`}</h2>
+          {offerFull ? <p className="doc-due-note">{formatAud(owing)} {doc.paidCents > 0 ? `left to pay (${formatAud(doc.paidCents)} paid so far)` : "in total"}. We recommend paying in full; or pay in stages{due ? `, starting with the ${due.label.toLowerCase()} now` : ""}.</p>
+            : <p className="doc-due-note">{due!.label}{staged ? ` (${due!.percent}%)` : ""} · {due!.when.toLowerCase()}{doc.paidCents > 0 ? ` · ${formatAud(doc.paidCents)} paid so far` : ""}</p>}
           {getStripe() && <div className="doc-paycard"><h3>Pay online</h3>
-            <form action={payInvoice}><input type="hidden" name="token" value={token} /><button className="button button-orange doc-pay" type="submit"><CreditCard aria-hidden /> Pay by card or Apple Pay</button></form>
+            {offerFull ? <div className="doc-pay-options">
+              <form action={payInvoice} className="doc-pay-option is-recommended"><input type="hidden" name="token" value={token} /><input type="hidden" name="mode" value="full" />
+                <span className="doc-pay-tag">Recommended</span><b>Pay in full · {formatAud(owing)}</b><small>All done in one payment: nothing more to pay later.</small>
+                <button className="button button-orange doc-pay" type="submit"><CreditCard aria-hidden /> Pay {formatAud(owing)} now</button></form>
+              {due && <form action={payInvoice} className="doc-pay-option"><input type="hidden" name="token" value={token} /><input type="hidden" name="mode" value="stage" />
+                <b>Pay in stages · {due.label.toLowerCase()} {formatAud(due.amountCents)} now</b><small>{doc.schedule.filter((stage) => stage.status !== "paid" && stage.key !== due.key).map((stage) => `${stage.label} ${formatAud(stage.amountCents)} ${stage.when.toLowerCase()}`).join(" · ")}</small>
+                <button className="button button-light doc-pay" type="submit">Pay {formatAud(due.amountCents)} now</button></form>}
+            </div> : <form action={payInvoice}><input type="hidden" name="token" value={token} /><button className="button button-orange doc-pay" type="submit"><CreditCard aria-hidden /> Pay by card or Apple Pay</button></form>}
             <PaymentMarks />
             <p><Lock aria-hidden /> Secure checkout by Stripe. Apple Pay appears on iPhone, iPad and Mac (Safari); Google Pay on Chrome and Android.</p></div>}
-          {settings.bsb && settings.accountNumber && <div className="doc-bank"><h3>Bank transfer</h3><dl><div><dt>Account name</dt><dd>{settings.accountName || settings.businessName}</dd></div>{settings.bankName && <div><dt>Bank</dt><dd>{settings.bankName}</dd></div>}<div><dt>BSB</dt><dd>{settings.bsb}</dd></div><div><dt>Account</dt><dd>{settings.accountNumber}</dd></div>{settings.swift && <div><dt>SWIFT (overseas)</dt><dd>{settings.swift}</dd></div>}<div><dt>Reference</dt><dd>{reference}</dd></div><div><dt>Amount</dt><dd>{formatAud(due.amountCents)}</dd></div></dl></div>}
+          {settings.bsb && settings.accountNumber && <div className="doc-bank"><h3>Bank transfer</h3><dl><div><dt>Account name</dt><dd>{settings.accountName || settings.businessName}</dd></div>{settings.bankName && <div><dt>Bank</dt><dd>{settings.bankName}</dd></div>}<div><dt>BSB</dt><dd>{settings.bsb}</dd></div><div><dt>Account</dt><dd>{settings.accountNumber}</dd></div>{settings.swift && <div><dt>SWIFT (overseas)</dt><dd>{settings.swift}</dd></div>}<div><dt>Reference</dt><dd>{offerFull ? doc.number : reference}</dd></div>
+            {offerFull ? <><div><dt>Pay in full</dt><dd>{formatAud(owing)}</dd></div>{due && <div><dt>Or {due.label.toLowerCase()}</dt><dd>{formatAud(due.amountCents)}</dd></div>}</> : <div><dt>Amount</dt><dd>{formatAud(due!.amountCents)}</dd></div>}</dl></div>}
           {!getStripe() && !(settings.bsb && settings.accountNumber) && <p>Please contact us to arrange payment.</p>}</>}
         <div className="doc-from"><h3>From</h3><p><b>{settings.businessName}</b>{settings.abn && <><br />ABN {settings.abn}</>}{settings.address && <><br />{settings.address}</>}{settings.phone && <><br />{settings.phone}</>}{settings.email && <><br />{settings.email}</>}</p></div>
       </aside>

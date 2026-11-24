@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { JsonLd } from "./json-ld";
 import { breadcrumbLd } from "@/lib/seo";
 import { industries, locations, projects, services } from "@/lib/data/content";
+import { caseStudies } from "@/lib/data/case-studies";
 import { coverageOf, getMake, getVehicleSelection, kitCategories, kitCoverage } from "@/lib/data/wraps";
 
 // Visible breadcrumb trail + BreadcrumbList structured data, derived from the URL.
@@ -14,11 +15,11 @@ const labels: Record<string, string> = {
   compare: "Compare Fitting Options", "how-to-install": "How to Install PPF", installers: "Installers", join: "Become an Installer", faq: "FAQs",
   trade: "Trade", "shipping-returns": "Shipping & Returns", services: "Services", industries: "Industries", work: "Our Work",
   "expert-advice": "Expert Advice", quote: "Get a Quote", locations: "Locations", about: "About", contact: "Contact",
-  account: "My Account", login: "Sign In",
+  account: "My Account", login: "Sign In", "case-studies": "Case Studies",
   privacy: "Privacy Policy", terms: "Terms of Use", warranty: "Warranty", disclaimer: "Disclaimer",
 };
 const titleCase = (slug: string) => slug.split("-").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
-const HIDDEN = [/^\/$/, /^\/admin/, /^\/wraps\/cart/, /^\/wraps\/checkout/, /^\/billing\//];
+const HIDDEN = [/^\/$/, /^\/admin/, /^\/vendor/, /^\/wraps\/cart/, /^\/wraps\/checkout/, /^\/billing\//];
 
 export function crumbsFor(pathname: string) {
   const parts = pathname.split("/").filter(Boolean);
@@ -43,6 +44,7 @@ export function crumbsFor(pathname: string) {
       : parent === "services" ? services.find((item) => item.slug === segment)?.title
       : parent === "industries" ? industries.find((item) => item.slug === segment)?.title
       : parent === "work" ? projects.find((item) => item.slug === segment)?.title
+      : parent === "case-studies" ? caseStudies.find((item) => item.slug === segment)?.client.replace(/ Pty Ltd$/, "")
       : parent === "locations" ? locations.find((item) => item.slug === segment)?.name
       : parent === "signs" && labels[segment] === undefined ? titleCase(segment)
       : labels[segment];

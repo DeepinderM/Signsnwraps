@@ -125,6 +125,21 @@ export const letterHeights = [
   { code: "H950", upTo: 950, noLight: 540, lit: 900 }, { code: "H1000", upTo: 1000, noLight: 600, lit: 1000 },
 ];
 
+/**
+ * Small non-lit letters (80 mm and under, any material) are cut in rows along a 1200 mm strip of a 1200 × 2400 sheet:
+ * the first letter of each row is $117 and every other letter in that row $25. A row holds about 1200 mm ÷ (letter
+ * height + 10% spacing) letters (13 at 80 mm); when the sign runs onto another row, that row starts again at $117.
+ * Staff can override the letters per row (e.g. for wide or narrow letters).
+ */
+export const SMALL_NON_LIT = { maxMm: 80, rowMm: 1200, firstLetterCents: 11_700, nextLetterCents: 2_500, code: "3DL-ROW" };
+export const isSmallNonLit = (light: string, heightMm: number) => light === "NL" && heightMm > 0 && heightMm <= SMALL_NON_LIT.maxMm;
+export const smallLettersPerRow = (heightMm: number) => Math.max(1, Math.floor(SMALL_NON_LIT.rowMm / (heightMm * 1.1)));
+/** Rows used and the total for `letters` small non-lit letters at `perRow` letters a row. */
+export function smallNonLitCharge(letters: number, perRow: number) {
+  const rows = letters > 0 ? Math.ceil(letters / Math.max(1, perRow)) : 0;
+  return { rows, cents: rows * SMALL_NON_LIT.firstLetterCents + (letters - rows) * SMALL_NON_LIT.nextLetterCents };
+}
+
 /** RGB is "Lit + surcharge" per letter. The catalog doesn't set the surcharge yet: 0 until it's confirmed. */
 export const RGB_SURCHARGE_PER_LETTER = 0;
 
@@ -248,6 +263,8 @@ export function letterPriceCents(spec: Pick<LetterSpec, "light" | "heightMm"> & 
   const band = heightBand(spec.heightMm);
   if (!band) return null;
   const light = find(letterLights, spec.light);
+  // Small non-lit letters: $25 each, plus the first-letter-of-the-row charge (see SMALL_NON_LIT, smallNonLitCharge).
+  if (isSmallNonLit(spec.light, spec.heightMm)) return SMALL_NON_LIT.nextLetterCents;
   // Non-lit flat-cut letters: the table price is 10 mm white PVC; other materials/thicknesses are multiples of it.
   if (!light?.lit && spec.face && spec.sides && spec.back && spec.depth) {
     const solid = solidBuild({ depth: spec.depth, face: spec.face, sides: spec.sides, back: spec.back });

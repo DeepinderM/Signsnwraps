@@ -21,3 +21,7 @@ Assets/Wraps-products/
 # Reference spreadsheets that stay local
 docs/bushwrapz-catalogue.xlsx
 docs/Order - *.xlsx
+
+# Case study source files (originals): web copies live in public/media/case-studies
+Assets/case - study projects/
+Assets/ColourPPF/

@@ -9,7 +9,24 @@ export const ACP_PANELS: AcpPanel[] = [
   { code: "ACP-1224", widthMm: 2440, heightMm: 1220, priceCents: 45_000 },
   { code: "ACP-1230", widthMm: 3050, heightMm: 1220, priceCents: 55_000 },
   { code: "ACP-1530", widthMm: 3000, heightMm: 1500, priceCents: 55_000 },
+  // 3660 mm lengths: priced in proportion to 1220 x 3050 and 1500 x 3000 until the supplier price is confirmed.
+  { code: "ACP-1236", widthMm: 3660, heightMm: 1220, priceCents: 66_000 },
+  { code: "ACP-1536", widthMm: 3660, heightMm: 1500, priceCents: 67_000 },
 ];
+
+/**
+ * Staff can limit a job to some ACP sizes (e.g. only what's in stock). The choice is saved on the quote line as
+ * "acp:ACP-1224,ACP-1236" so the job sheet and PDF re-plan with the same sizes; all sizes = no set (the default).
+ */
+/** The standard sheet: always available to every job (staff can add other sizes, not remove this one). */
+export const STANDARD_ACP = "ACP-1224";
+/** Sizes ticked when a calculator opens; staff tick the others when a job needs them. */
+export const DEFAULT_ACP_SIZES = ["ACP-1212", STANDARD_ACP];
+export const ACP_SET_PATTERN = /^acp:ACP-\d{4}(,ACP-\d{4})*$/;
+export function acpPanelSet(codes: string[]) {
+  const chosen = ACP_PANELS.filter((panel) => panel.code === STANDARD_ACP || codes.includes(panel.code));
+  return chosen.length && chosen.length < ACP_PANELS.length ? `acp:${chosen.map((panel) => panel.code).join(",")}` : undefined;
+}
 
 /**
  * PVC sheets for mounting letters (one size; the price depends on colour, the same for 10, 16 and 20 mm).
@@ -22,14 +39,18 @@ export function pvcMountPanels(thicknessMm: number, colour: "white" | "black"): 
 }
 export function panelsForSet(set?: string): AcpPanel[] {
   const match = /^pvc-(10|16|20)-(white|black)$/.exec(set ?? "");
-  return match ? pvcMountPanels(Number(match[1]), match[2] as "white" | "black") : ACP_PANELS;
+  if (match) return pvcMountPanels(Number(match[1]), match[2] as "white" | "black");
+  const chosen = ACP_SET_PATTERN.test(set ?? "") ? ACP_PANELS.filter((panel) => set!.slice(4).split(",").includes(panel.code)) : [];
+  return chosen.length ? chosen : ACP_PANELS;
 }
 export function panelSetLabel(set?: string) {
   const match = /^pvc-(10|16|20)-(white|black)$/.exec(set ?? "");
-  return match ? `${match[1]} mm ${match[2]} PVC` : "ACP";
+  if (match) return `${match[1]} mm ${match[2]} PVC`;
+  return ACP_SET_PATTERN.test(set ?? "") ? `ACP (${panelsForSet(set).map(panelName).join(", ")})` : "ACP";
 }
 
-export const panelName = (panel: AcpPanel) => `${Math.min(panel.widthMm, panel.heightMm)} x ${Math.max(panel.widthMm, panel.heightMm)} mm`;
+/** Long side first: "3660 x 1220 mm". */
+export const panelName = (panel: AcpPanel) => `${Math.max(panel.widthMm, panel.heightMm)} x ${Math.min(panel.widthMm, panel.heightMm)} mm`;
 
 /** A panel as placed: its size along the row (length) and across it (depth), possibly rotated. */
 export type PlacedPanel = { panel: AcpPanel; lengthMm: number; depthMm: number };
@@ -115,7 +136,7 @@ export function planAcp(widthMm: number, heightMm: number, panels: AcpPanel[] = 
   return options[0] ?? null;
 }
 
-/** "2 x 1500 x 3000 mm + 1 x 1200 x 1200 mm" */
+/** "2 x 3000 x 1500 mm + 1 x 1200 x 1200 mm" */
 export const describeBill = (plan: AcpPlan) => plan.bill.map((entry) => `${entry.qty} x ${panelName(entry.panel)}`).join(" + ");
 
 // ── Whole-job nesting ─────────────────────────────────────────────────────────────────────────────

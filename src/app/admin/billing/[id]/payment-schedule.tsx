@@ -19,6 +19,7 @@ export function PaymentSchedule({ id, schedule, editable, isQuote }: { id: strin
   const run = (stage: string, action: string, ref = "", how = "") => { const form = new FormData(); form.set("id", id); form.set("stage", stage); form.set("action", action); form.set("reference", ref); form.set("method", how); setRecording(""); setReference(""); setMethod(""); startTransition(() => act(form)); };
   const paid = schedule.filter((stage) => stage.status === "paid").reduce((sum, stage) => sum + stage.amountCents, 0);
   const total = schedule.reduce((sum, stage) => sum + stage.amountCents, 0);
+  const unpaid = schedule.filter((stage) => stage.status !== "paid"), owing = unpaid.reduce((sum, stage) => sum + stage.amountCents, 0);
 
   return <div className="pay-schedule">
     {!isQuote && <div className="pay-progress" aria-label={`${Math.round((paid / (total || 1)) * 100)}% paid`}><i style={{ width: `${(paid / (total || 1)) * 100}%` }} /><span>{money(paid)} of {money(total)} paid</span></div>}
@@ -44,6 +45,15 @@ export function PaymentSchedule({ id, schedule, editable, isQuote }: { id: strin
         </div>}
       </li>)}
     </ol>
+    {/* The customer paid everything still owing at once (any stages not yet requested included). */}
+    {!isQuote && editable && unpaid.length > 1 && <div className="pay-full">
+      {recording === "all" ? <form className="pay-record" onSubmit={(event) => { event.preventDefault(); if (method) run("all", "paid", reference, method); }}>
+          <b>Paid in full: {money(owing)}</b>
+          <div className="pay-methods" role="radiogroup" aria-label="How was it paid?">{STAFF_METHODS.map((value) => <label key={value} className={method === value ? "is-on" : ""}><input type="radio" name="method-all" value={value} checked={method === value} onChange={() => setMethod(value)} />{paymentMethodLabel[value]}</label>)}</div>
+          <input value={reference} onChange={(event) => setReference(event.target.value)} placeholder={method === "cash" ? "Receipt no. (optional)" : "Bank reference (optional)"} maxLength={80} aria-label="Payment reference" />
+          <button className="button button-orange" type="submit" disabled={pending || !method}>Mark all paid</button><button className="button button-light" type="button" onClick={() => { setRecording(""); setMethod(""); }}>Cancel</button></form>
+        : <button type="button" className="button button-light" disabled={pending} onClick={() => setRecording("all")}>Customer paid the full balance ({money(owing)})</button>}
+    </div>}
     {state?.error && <p className="admin-error" role="alert">{state.error}</p>}
     {state?.ok && <p className="admin-ok" role="status">{state.ok}</p>}
   </div>;

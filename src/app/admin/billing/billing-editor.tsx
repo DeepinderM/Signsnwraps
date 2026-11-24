@@ -12,7 +12,9 @@ import { saveBilling } from "./actions";
 type Item = { key: number; description: string; qty: string; price: string; gst: boolean; roll?: RollDetails; code?: string; production?: string; acp?: { widthMm: number; heightMm: number; signs?: number; showDiagram?: boolean; panelSet?: string } };
 type Customer = { name: string; business: string; email: string; phone: string; address: string; abn: string };
 type Props = {
-  id?: string; kind: "quote" | "invoice"; gstRegistered: boolean; stores: { value: string; label: string }[] | null; catalog: CatalogItem[];
+  id?: string; kind: "quote" | "invoice"; gstRegistered: boolean;
+  /** Super admins set prices; store staff build from the catalog and calculators, and can only change quantities. */
+  canEditPrices: boolean; stores: { value: string; label: string }[] | null; catalog: CatalogItem[];
   initial: { store: string; customer: Customer; discount: Discount | null; items: { description: string; qty: number; unitCents: number; gst: boolean; roll?: RollDetails; code?: string; production?: string; acp?: { widthMm: number; heightMm: number; signs?: number; showDiagram?: boolean; panelSet?: string } }[]; title: string; notes: string; issueDate: string; dueDate: string; enquiryId: string; userId: string };
 };
 
@@ -21,7 +23,7 @@ const toCents = (value: string) => Math.round(Number(value.replace(/[$,\s]/g, ""
 let nextKey = 1;
 
 /** Quote / invoice editor: customer, line items (ex GST) with live GST and totals, dates and notes. */
-export function BillingEditor({ id, kind, gstRegistered, stores, catalog, initial }: Props) {
+export function BillingEditor({ id, kind, gstRegistered, canEditPrices, stores, catalog, initial }: Props) {
   const [showCatalog, setShowCatalog] = useState(false);
   const [state, action, pending] = useActionState(saveBilling, null);
   const [customer, setCustomer] = useState(initial.customer);
@@ -83,8 +85,8 @@ export function BillingEditor({ id, kind, gstRegistered, stores, catalog, initia
         {lines.map((line, index) => <div className="bill-row" role="row" key={line.key}>
           <textarea aria-label={`Line ${index + 1} description`} value={line.description} onChange={(event) => update(line.key, { description: event.target.value })} rows={2} maxLength={2000} placeholder="What's included" />
           <input aria-label={`Line ${index + 1} quantity`} inputMode="decimal" value={items[index].qty} onChange={(event) => update(line.key, { qty: event.target.value })} />
-          <div className="bill-money"><span>$</span><input aria-label={`Line ${index + 1} unit price`} inputMode="decimal" value={items[index].price} onChange={(event) => update(line.key, { price: event.target.value })} placeholder="0.00" /></div>
-          {gstRegistered && <label className="bill-gst"><input type="checkbox" checked={line.gst} onChange={(event) => update(line.key, { gst: event.target.checked })} /> 10%</label>}
+          <div className={`bill-money${canEditPrices ? "" : " is-locked"}`}><span>$</span><input aria-label={`Line ${index + 1} unit price`} inputMode="decimal" value={items[index].price} onChange={(event) => update(line.key, { price: event.target.value })} placeholder="0.00" readOnly={!canEditPrices} title={canEditPrices ? undefined : "Prices are set by the super admin"} /></div>
+          {gstRegistered && <label className="bill-gst"><input type="checkbox" checked={line.gst} onChange={(event) => update(line.key, { gst: event.target.checked })} disabled={!canEditPrices} /> 10%</label>}
           <b className="bill-amount">{money(line.amount)}</b>
           <button type="button" className="bill-remove" aria-label={`Remove line ${index + 1}`} onClick={() => setItems((current) => current.length > 1 ? current.filter((item) => item.key !== line.key) : current)} disabled={items.length === 1}><Trash2 aria-hidden /></button>
           {line.roll && <label className="bill-roll"><input type="checkbox" checked={line.roll.showDiagram} onChange={(event) => update(line.key, { roll: { ...line.roll!, showDiagram: event.target.checked } })} /> Show roll diagram to customer <small>{line.roll.widthMm} × {line.roll.heightMm} mm · {rollUsage(line.roll.widthMm, line.roll.heightMm, line.roll.rollWidthMm).areaM2.toFixed(2)} m² of {line.roll.rollWidthMm} mm roll</small></label>}
@@ -97,10 +99,11 @@ export function BillingEditor({ id, kind, gstRegistered, stores, catalog, initia
       </div>
       <div className="bill-add-row">
         {catalog.length > 0 && <button type="button" className="bill-add bill-add-catalog" onClick={() => setShowCatalog(true)} aria-expanded={showCatalog}><BookOpen aria-hidden /> Add from catalog</button>}
-        <button type="button" className="bill-add" onClick={() => setItems((current) => [...current, { key: nextKey++, description: "", qty: "1", price: "", gst: true }])}><Plus aria-hidden /> Add custom line</button>
+        {canEditPrices ? <button type="button" className="bill-add" onClick={() => setItems((current) => [...current, { key: nextKey++, description: "", qty: "1", price: "", gst: true }])}><Plus aria-hidden /> Add custom line</button>
+          : <small className="bill-locked-note">Prices come from the catalog and can only be changed by a super admin. Ask them for a custom price or a discount.</small>}
       </div>
       {showCatalog && <CatalogPicker items={catalog} kind={kind} onAdd={addFromCatalog} onClose={() => setShowCatalog(false)} />}
-      <fieldset className="bill-discount"><legend>Discount <small>(optional, off the subtotal before GST)</small></legend>
+      {canEditPrices ? <fieldset className="bill-discount"><legend>Discount <small>(optional, off the subtotal before GST)</small></legend>
         <div className="bill-discount-type" role="radiogroup" aria-label="Discount type">
           {([["none", "No discount"], ["percent", "% off"], ["amount", "$ off"]] as const).map(([value, text]) => <label key={value} className={discount.type === value ? "is-on" : ""}><input type="radio" name="discountType" value={value} checked={discount.type === value} onChange={() => setDiscount((current) => ({ ...current, type: value }))} />{text}</label>)}
         </div>
@@ -111,7 +114,7 @@ export function BillingEditor({ id, kind, gstRegistered, stores, catalog, initia
           <div className="field"><label htmlFor="b-discount-reason">Reason <small>(shown to the customer, optional)</small></label><input id="b-discount-reason" name="discountReason" value={discount.reason} onChange={(event) => setDiscount((current) => ({ ...current, reason: event.target.value }))} maxLength={120} placeholder="e.g. Repeat customer, Bundle deal" /></div>
           {discountTooBig && <p className="admin-error" role="alert">{discount.type === "percent" ? "A discount can't be more than 100%." : "The discount can't be more than the subtotal."}</p>}
         </>}
-      </fieldset>
+      </fieldset> : discountCents > 0 && <p className="bill-locked-note">Discount set by a super admin: {discount.type === "percent" ? `${discountValue}%` : money(Math.round(discountValue * 100))}{discount.reason.trim() ? ` (${discount.reason.trim()})` : ""}.</p>}
       <dl className="bill-totals">
         <div><dt>Subtotal (ex GST)</dt><dd>{money(subtotal)}</dd></div>
         {discountCents > 0 && <><div className="is-discount"><dt>Discount{discount.type === "percent" ? ` (${discountValue}%)` : ""}{discount.reason.trim() ? `: ${discount.reason.trim()}` : ""}</dt><dd>−{money(discountCents)}</dd></div>

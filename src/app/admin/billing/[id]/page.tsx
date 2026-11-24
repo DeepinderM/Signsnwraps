@@ -5,6 +5,12 @@ import { FileDown } from "lucide-react";
 import { requireAdmin } from "@/lib/admin-auth";
 import { discountLabel, formatDate, getBillingDoc, getBillingSettings, isEditable, isOverdue, nextDueStage, statusLabel } from "@/lib/billing";
 import { billingViewUrl } from "@/lib/billing-links";
+import { canRaisePurchaseOrder, getPurchaseOrder, quoteIdFor } from "@/lib/purchase-orders";
+import { progressLabel } from "@/lib/vendor-types";
+import { hasUnread } from "@/lib/po-chat-types";
+import { getInstallationFor } from "@/lib/installations";
+import { installStage } from "@/lib/installation-types";
+import { addInstallation } from "@/app/admin/installations/actions";
 import { emailMode, getThread } from "@/lib/email";
 import { billingTemplates } from "@/lib/email-templates";
 import { formatAud } from "@/lib/shop/catalog";
@@ -27,7 +33,7 @@ export default async function BillingDocPage({ params, searchParams }: { params:
   const doc = await getBillingDoc((await params).id);
   if (!doc || (admin.role !== "super" && doc.store !== admin.store)) notFound();
   const { created } = await searchParams;
-  const [settings, thread, catalog] = await Promise.all([getBillingSettings(), getThread({ type: "billing", id: doc.id }), isEditable(doc) ? listCatalog({ activeOnly: true }) : Promise.resolve([])]);
+  const [settings, thread, catalog, po, install] = await Promise.all([getBillingSettings(), getThread({ type: "billing", id: doc.id }), isEditable(doc) ? listCatalog({ activeOnly: true }) : Promise.resolve([]), getPurchaseOrder(quoteIdFor(doc)), getInstallationFor(doc)]);
   const link = billingViewUrl(doc.token);
   const label = doc.kind === "quote" ? "Quote" : settings.gstRegistered ? "Tax invoice" : "Invoice";
   const bank = settings.bsb && settings.accountNumber ? `Bank transfer: ${settings.accountName || settings.businessName}, BSB ${settings.bsb}, account ${settings.accountNumber}. Please use ${doc.number} as the reference.` : "";
@@ -64,6 +70,20 @@ export default async function BillingDocPage({ params, searchParams }: { params:
       </dl>
     </section>
 
+    {canRaisePurchaseOrder(doc) && <section className={`admin-card po-card${po?.status === "sent" ? " is-sent" : ""}`} id="purchase-order">
+      <div><h2>Purchase order{po ? ` ${po.number}` : ""} <span className={`bill-status is-${po?.status === "sent" ? "accepted" : "draft"}`}>{po?.status === "sent" ? "Sent" : "Ready to send"}</span>{po?.status === "sent" && <span className={`progress-badge is-${po.progress}`}>{progressLabel(po.progress)}</span>}{po && hasUnread(po, "staff") && <span className="chat-unread">New message</span>}</h2>
+        <p className="admin-hint">{po?.status === "sent" ? `Sent to ${po.recipients.join(", ")}${po.sentBy ? ` by ${po.sentBy}` : ""}${po.sentAt ? ` · ${stamp.format(po.sentAt)}` : ""}.` : "The quote is accepted: review the purchase order for the manufacturer, choose what to order and send it with the production sheet and artwork."}</p></div>
+      <Link className={`button ${po?.status === "sent" ? "button-light" : "button-orange"}`} href={`/admin/billing/${doc.id}/purchase-order`}>{po?.status === "sent" ? "View purchase order" : "Review and send"}</Link>
+    </section>}
+
+    {canRaisePurchaseOrder(doc) && <section className="admin-card po-card inst-card" id="installation">
+      <div><h2>Installation {install && <span className={`inst-badge is-${installStage(install).key}`}>{installStage(install).label}</span>}</h2>
+        <p className="admin-hint">{install ? install.date ? `${new Date(`${install.date}T00:00:00`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}${install.startTime ? ` at ${install.startTime}` : ""} · ${install.location === "outside" ? "outside" : install.location === "inside" ? "inside" : "inside/outside not set"}${install.liftRequired ? ` · lift ${install.lift.booked ? "booked" : "not booked"}` : ""}` : "No date yet: schedule it, check the weather and book the lift."
+          : "No installation on this job. Add one if we're installing it."}</p></div>
+      {install ? <Link className="button button-light" href={`/admin/installations/${install.id}`}>{install.date ? "Open installation" : "Schedule installation"}</Link>
+        : <form action={addInstallation}><input type="hidden" name="docId" value={doc.id} /><button className="button button-light" type="submit">Add installation</button></form>}
+    </section>}
+
     <section className="admin-card" id="payments"><h2>Payment schedule <small>{doc.schedule.length > 1 ? doc.schedule.map((stage) => `${stage.percent}% ${stage.when.toLowerCase()}`).join(", ") : "Paid in full"}</small></h2>
       <PaymentSchedule id={doc.id} schedule={doc.schedule} editable={doc.kind === "invoice" && doc.status !== "void" && doc.status !== "draft"} isQuote={doc.kind === "quote"} />
       {doc.kind === "invoice" && doc.status === "draft" && <p className="admin-hint">Send the invoice to request the {doc.schedule[0]?.label.toLowerCase()}. Later payments are requested here when the job reaches that stage.</p>}
@@ -75,7 +95,7 @@ export default async function BillingDocPage({ params, searchParams }: { params:
           templates={billingTemplates({ kind: doc.kind, number: doc.number, name: doc.customer.name, title: doc.title, total: formatAud(doc.totalCents), due: formatDate(doc.dueDate), link, staff: admin.name || "The Signsnwraps team", bank, schedule: doc.schedule.map((stage) => ({ label: stage.label, percent: stage.percent, amount: formatAud(stage.amountCents), when: stage.when })), dueStage: nextDueStage(doc) ? { label: nextDueStage(doc)!.label, percent: nextDueStage(doc)!.percent, amount: formatAud(nextDueStage(doc)!.amountCents) } : null })} />}
     </section>
 
-    {isEditable(doc) ? <><h2 className="bill-section-title">Edit {doc.kind}</h2><BillingEditor catalog={catalog} id={doc.id} kind={doc.kind} gstRegistered={settings.gstRegistered} stores={admin.role === "super" ? stores : null} initial={{ ...doc, store: doc.store ?? "" }} /></>
+    {isEditable(doc) ? <><h2 className="bill-section-title">Edit {doc.kind}</h2><BillingEditor catalog={catalog} id={doc.id} kind={doc.kind} gstRegistered={settings.gstRegistered} canEditPrices={admin.role === "super"} stores={admin.role === "super" ? stores : null} initial={{ ...doc, store: doc.store ?? "" }} /></>
       : <section className="admin-card"><h2>Items</h2><p className="admin-hint">This {doc.kind} is {statusLabel(doc).toLowerCase()}{doc.paidCents > 0 && doc.status !== "paid" ? " and has payments recorded" : ""}, so it can no longer be edited.</p>
         <table className="admin-table"><thead><tr><th>Description</th><th>Qty</th><th>Unit (ex GST)</th><th>Amount</th></tr></thead><tbody>{doc.items.map((item, index) => <tr key={index}><td className="admin-pre">{item.description}{item.code && <><br /><code className="prod-code">{item.code}</code></>}</td><td>{item.qty}</td><td>{formatAud(item.unitCents)}</td><td>{formatAud(Math.round(item.qty * item.unitCents))}</td></tr>)}</tbody>
           <tfoot><tr><td colSpan={3}>Subtotal</td><td>{formatAud(doc.subtotalCents)}</td></tr>{doc.discountCents > 0 && <tr><td colSpan={3}>{discountLabel(doc.discount)}</td><td>−{formatAud(doc.discountCents)}</td></tr>}<tr><td colSpan={3}>GST</td><td>{formatAud(doc.gstCents)}</td></tr><tr><th colSpan={3}>Total</th><th>{formatAud(doc.totalCents)}</th></tr></tfoot></table></section>}
