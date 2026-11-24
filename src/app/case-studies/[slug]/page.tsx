@@ -120,7 +120,12 @@ export default async function CaseStudyPage({ params }: Props) {
         : study.production.images ? <Gallery images={study.production.images} label="Production photos" /> : study.production.video && <VideoFigure video={study.production.video} />}
     </div></section>)}
 
-    {study.installation && <section className="section cs-block cs-tint"><div className="container cs-two cs-align">
+    {study.installation?.images && <section className="section cs-block cs-tint"><div className="container">
+      <span className="eyebrow">PRODUCTION &amp; INSTALLATION</span><h2 className="heading-lg">{study.installation.title}</h2>
+      <div className="cs-text">{study.installation.paragraphs.map((text) => <p key={text}>{text}</p>)}</div>
+      <Gallery images={study.installation.images} label="Production and installation photos" />
+    </div></section>}
+    {study.installation && !study.installation.images && <section className="section cs-block cs-tint"><div className="container cs-two cs-align">
       <div><span className="eyebrow">INSTALLATION</span><h2 className="heading-lg">{study.installation.title}</h2><div className="cs-text">{study.installation.paragraphs.map((text) => <p key={text}>{text}</p>)}</div></div>
       {study.installation.video ? <figure className="cs-media-video cs-install-video"><video controls preload="none" playsInline poster={study.installation.video.poster} width={study.installation.video.width} height={study.installation.video.height}><source src={study.installation.video.src} type="video/mp4" />{study.installation.video.description}</video><span className="cs-media-tag">▶ Video</span><figcaption className="sr-only">{study.installation.video.title}</figcaption></figure>
         : study.installation.image && <figure className="cs-photo"><Image src={study.installation.image.src} alt={study.installation.image.alt} width={study.installation.image.width} height={study.installation.image.height} sizes="(max-width: 760px) 100vw, 50vw" /></figure>}

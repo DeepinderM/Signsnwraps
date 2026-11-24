@@ -34,7 +34,8 @@ export type CaseStudy = {
   specs?: { title: string; columns: string[]; rows: string[][]; note?: string };
   /** Either labelled points (two columns), or paragraphs with a gallery and an optional video. */
   production?: { title: string; intro: string; points?: { label: string; text: string }[]; paragraphs?: string[]; images?: CaseImage[]; video?: CaseVideo };
-  installation?: { title: string; paragraphs: string[]; image?: CaseImage; video?: CaseVideo };
+  /** images: two or more photos shown as a row under the text (instead of the single side image). */
+  installation?: { title: string; paragraphs: string[]; image?: CaseImage; images?: CaseImage[]; video?: CaseVideo };
   result: { title: string; paragraphs: string[]; after: CaseImage[]; video?: CaseVideo };
   /** Long-term client: the other work we've done for them. */
   relationship?: { title: string; intro: string; items: { label: string; text: string }[]; outro: string };
@@ -229,7 +230,7 @@ export const caseStudies: CaseStudy[] = [
         "The two building logos are 50 mm fabricated acrylic with white illuminated faces and satin black returns. They sit on stand-offs, with RGB LEDs on the back that throw a purple glow onto the facade, matching Bombay's brand colour after dark. Both were installed high on the metal-clad facade using a lift.",
         "Inside, the lounge logo was fitted to the arched feature wall. It is an ACP push-through sign that stands off the wall with a halo glow behind it. The acrylic directory sign went up in the stairwell, and the door vinyl was applied to the inside of the glass so it stays protected from the weather.",
       ],
-      image: { src: `${bre}/bombay-real-estate-arched-wall-installation.webp`, alt: "Installing the halo-lit sign on the arched lounge wall at Bombay Real Estate Truganina", width: 960, height: 1280 },
+      image: { src: `${bre}/bombay-real-estate-3d-letters-led-modules-workshop.webp`, alt: "Bombay Real Estate 3D letters with LED modules wired in, in the workshop before assembly", width: 1600, height: 1200 },
     },
     result: {
       title: "The result: a finished office from street to lounge",
