@@ -48,12 +48,15 @@ const stagePlan: Record<"full" | "staged", { key: StageKey; label: string; perce
   ],
 };
 
-/** Jobs over this total (incl. GST) can be paid in stages (40 / 40 / 20); smaller ones are paid in full. Full payment is always offered. */
-export const STAGED_OVER_CENTS = 200_000;
+import { STAGED_OVER_CENTS } from "./billing-discount";
+export { STAGED_OVER_CENTS } from "./billing-discount";
 
-/** Fresh schedule for a total; the last stage absorbs rounding so the stages add up exactly. */
-export function buildSchedule(totalCents: number): PaymentStage[] {
-  const plan = totalCents > STAGED_OVER_CENTS ? stagePlan.staged : stagePlan.full;
+/**
+ * Fresh schedule for a total; the last stage absorbs rounding so the stages add up exactly.
+ * `payInFull` (staff's choice, e.g. for non-signage work) turns the stages off even when the job is over the threshold.
+ */
+export function buildSchedule(totalCents: number, payInFull = false): PaymentStage[] {
+  const plan = totalCents > STAGED_OVER_CENTS && !payInFull ? stagePlan.staged : stagePlan.full;
   let allocated = 0;
   return plan.map((stage, index) => {
     const amountCents = index === plan.length - 1 ? totalCents - allocated : Math.round((totalCents * stage.percent) / 100);
@@ -95,6 +98,8 @@ export type BillingDoc = {
   history: BillingEvent[];
   origin: BillingOrigin;
   schedule: PaymentStage[];
+  /** Staff chose "Payment at once only": no 40 / 40 / 20 stages, even over $2,000. */
+  payInFull: boolean;
 };
 
 export type BillingSettings = {
@@ -127,7 +132,7 @@ export const isOverdue = (doc: Pick<BillingDoc, "kind" | "status" | "dueDate">) 
 export const isEditable = (doc: Pick<BillingDoc, "status"> & Partial<Pick<BillingDoc, "paidCents">>) => (doc.status === "draft" || doc.status === "sent") && !doc.paidCents;
 export const formatDate = (iso: string) => iso ? new Intl.DateTimeFormat("en-AU", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`)) : "";
 
-const withSchedule = (sums: ReturnType<typeof totals>) => ({ ...sums, schedule: buildSchedule(sums.totalCents) });
+const withSchedule = (sums: ReturnType<typeof totals>, payInFull: boolean) => ({ ...sums, schedule: buildSchedule(sums.totalCents, payInFull) });
 
 export function totals(items: LineItem[], gstRegistered = true, discount: Discount | null = null) {
   const subtotalCents = items.reduce((sum, item) => sum + Math.round(item.qty * item.unitCents), 0);
@@ -177,7 +182,8 @@ function toDoc(id: string, data: DocumentData): BillingDoc {
     // Older documents without a stored schedule get one from their total (fully paid ones show as paid).
     schedule: Array.isArray(data.schedule) ? data.schedule
       : data.status === "paid" ? [{ key: "full" as const, label: "Payment in full", percent: 100, amountCents: data.totalCents ?? 0, when: "Before work starts", status: "paid" as const, requestedAt: 0, paidAt: millis(data.paidAt), reference: "" }]
-      : buildSchedule(data.totalCents ?? 0),
+      : buildSchedule(data.totalCents ?? 0, data.payInFull === true),
+    payInFull: data.payInFull === true,
     origin: data.origin ?? { kind: data.fromQuoteId ? "quote" : data.enquiryId ? "enquiry" : data.userId ? "account" : "manual", label: data.fromQuoteId ? "Converted from a quote" : data.enquiryId ? "Website enquiry" : data.userId ? "Customer account" : "Created manually", channel: "Not tracked", campaign: "", landingPage: "", createdBy: data.createdBy ?? "", createdByEmail: "", createdByRole: "super", createdByStore: null },
   };
 }
@@ -194,7 +200,7 @@ async function nextNumber(kind: BillingKind) {
 
 const event = (by: string, text: string): BillingEvent => ({ at: Date.now(), by, text });
 
-export type BillingDraft = Pick<BillingDoc, "store" | "customer" | "items" | "discount" | "title" | "notes" | "issueDate" | "dueDate" | "enquiryId" | "userId">;
+export type BillingDraft = Pick<BillingDoc, "store" | "customer" | "items" | "discount" | "title" | "notes" | "issueDate" | "dueDate" | "enquiryId" | "userId" | "payInFull">;
 
 export async function createBillingDoc(kind: BillingKind, draft: BillingDraft, by: string, extra: { fromQuoteId?: string; origin: BillingOrigin }) {
   const settings = await getBillingSettings();
@@ -202,7 +208,7 @@ export async function createBillingDoc(kind: BillingKind, draft: BillingDraft, b
   const number = await nextNumber(kind);
   await ref.set({
     // Customer link token: letters and digits only, so it survives copy/paste and PDF line wraps.
-    kind, number, status: "draft", token: randomBytes(20).toString("hex"), ...draft, ...withSchedule(totals(draft.items, settings.gstRegistered, draft.discount)), paidCents: 0,
+    kind, number, status: "draft", token: randomBytes(20).toString("hex"), ...draft, ...withSchedule(totals(draft.items, settings.gstRegistered, draft.discount), draft.payInFull), paidCents: 0,
     fromQuoteId: extra.fromQuoteId ?? "", invoiceId: "", createdBy: by, origin: extra.origin, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
     history: [event(by, `${kind === "quote" ? "Quote" : "Invoice"} ${number} created (${extra.origin.label}) · managed by ${storeLabel(draft.store)}`)],
   });
@@ -214,7 +220,7 @@ export async function updateBillingDoc(id: string, draft: BillingDraft, by: stri
   const events = [event(by, "Details updated")];
   if (previousStore !== draft.store) events.push({ ...event(by, `Managing store changed from ${storeLabel(previousStore)} to ${storeLabel(draft.store)}`), at: Date.now() + 1 });
   // Only called while nothing has been paid (see isEditable), so the schedule can be rebuilt from the new total.
-  await billing().doc(id).update({ ...draft, ...withSchedule(totals(draft.items, settings.gstRegistered, draft.discount)), updatedAt: FieldValue.serverTimestamp(), history: FieldValue.arrayUnion(...events) });
+  await billing().doc(id).update({ ...draft, ...withSchedule(totals(draft.items, settings.gstRegistered, draft.discount), draft.payInFull), updatedAt: FieldValue.serverTimestamp(), history: FieldValue.arrayUnion(...events) });
 }
 
 export async function setBillingStatus(id: string, changes: Partial<Pick<BillingDoc, "status" | "paidCents" | "invoiceId">> & { sentAt?: boolean; respondedAt?: boolean; paidAt?: boolean }, by: string, text: string) {

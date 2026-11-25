@@ -5,7 +5,7 @@ import { BookOpen, Plus, Trash2 } from "lucide-react";
 import { rollUsage, type CatalogItem } from "@/lib/catalog-types";
 import { panelSetLabel } from "@/lib/acp-panels";
 import type { RollDetails } from "@/lib/billing";
-import { discountAmount, type Discount } from "@/lib/billing-discount";
+import { discountAmount, STAGED_OVER_CENTS, type Discount } from "@/lib/billing-discount";
 import { CatalogPicker, type PickedLine } from "./catalog-picker";
 import { saveBilling } from "./actions";
 
@@ -15,7 +15,7 @@ type Props = {
   id?: string; kind: "quote" | "invoice"; gstRegistered: boolean;
   /** Super admins set prices; store staff build from the catalog and calculators, and can only change quantities. */
   canEditPrices: boolean; stores: { value: string; label: string }[] | null; catalog: CatalogItem[];
-  initial: { store: string; customer: Customer; discount: Discount | null; items: { description: string; qty: number; unitCents: number; gst: boolean; roll?: RollDetails; code?: string; production?: string; acp?: { widthMm: number; heightMm: number; signs?: number; showDiagram?: boolean; panelSet?: string } }[]; title: string; notes: string; issueDate: string; dueDate: string; enquiryId: string; userId: string };
+  initial: { store: string; customer: Customer; discount: Discount | null; items: { description: string; qty: number; unitCents: number; gst: boolean; roll?: RollDetails; code?: string; production?: string; acp?: { widthMm: number; heightMm: number; signs?: number; showDiagram?: boolean; panelSet?: string } }[]; title: string; notes: string; issueDate: string; dueDate: string; enquiryId: string; userId: string; payInFull: boolean };
 };
 
 const money = (cents: number) => `$${(cents / 100).toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -32,6 +32,7 @@ export function BillingEditor({ id, kind, gstRegistered, canEditPrices, stores, 
   const lines = items.map((item) => { const qty = Number(item.qty) || 0, unit = toCents(item.price) || 0, amount = Math.round(qty * unit); return { ...item, qty, unit, amount, gstCents: gstRegistered && item.gst ? Math.round(amount * 0.1) : 0 }; });
   const subtotal = lines.reduce((sum, line) => sum + line.amount, 0);
   // Discount on the whole job (ex GST), before GST; GST is on the discounted price (same maths as totals() on the server).
+  const [payInFull, setPayInFull] = useState(initial.payInFull);
   const [discount, setDiscount] = useState({ type: initial.discount?.type ?? "none", value: initial.discount ? String(initial.discount.type === "amount" ? (initial.discount.value / 100).toFixed(2) : initial.discount.value) : "", reason: initial.discount?.reason ?? "" });
   const discountValue = Number(discount.value.replace(/[$,%\s]/g, "")) || 0;
   const discountCents = discount.type === "none" ? 0 : discountAmount({ type: discount.type as Discount["type"], value: discount.type === "amount" ? Math.round(discountValue * 100) : discountValue, reason: "" }, subtotal);
@@ -122,6 +123,11 @@ export function BillingEditor({ id, kind, gstRegistered, canEditPrices, stores, 
         {gstRegistered && <div><dt>GST (10%)</dt><dd>{money(gst)}</dd></div>}
         <div className="is-total"><dt>Total{gstRegistered ? " incl. GST" : ""}</dt><dd>{money(subtotal - discountCents + gst)}</dd></div>
       </dl>
+      <fieldset className="bill-pay-terms"><legend>Payment terms</legend>
+        <label className="bill-pay-toggle"><input type="checkbox" name="payInFull" checked={payInFull} onChange={(event) => setPayInFull(event.target.checked)} />
+          <span><strong>Payment at once only</strong><small>No 40% / 40% / 20% stages, even over {money(STAGED_OVER_CENTS)}. Use for work other than signage that must be paid in one go.</small></span></label>
+        <p className="admin-hint">{subtotal - discountCents + gst > STAGED_OVER_CENTS && !payInFull ? "The customer can pay in stages (40% deposit, 40% before installation, 20% on completion) or the full amount at once." : "The customer pays the full amount at once, before work starts."}</p>
+      </fieldset>
     </section>
 
     <section className="admin-card"><h2>Notes for the customer</h2>

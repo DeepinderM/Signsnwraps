@@ -22,7 +22,7 @@ export async function invoiceFromQuote(doc: BillingDoc, by: string, creator: Cre
   const issueDate = todayIso();
   // The invoice keeps the quote's lead channel so the sale is credited to the original source.
   const origin: BillingOrigin = { ...doc.origin, kind: "quote", label: `Quote ${doc.number}${doc.origin.kind === "enquiry" ? ` (${doc.origin.label})` : ""}`, ...creator };
-  const created = await createBillingDoc("invoice", { store: doc.store, customer: doc.customer, items: doc.items, discount: doc.discount, title: doc.title, notes: doc.notes, issueDate, dueDate: addDays(issueDate, settings.paymentTermsDays), enquiryId: doc.enquiryId, userId: doc.userId }, by, { fromQuoteId: doc.id, origin });
+  const created = await createBillingDoc("invoice", { store: doc.store, customer: doc.customer, items: doc.items, discount: doc.discount, title: doc.title, notes: doc.notes, issueDate, dueDate: addDays(issueDate, settings.paymentTermsDays), enquiryId: doc.enquiryId, userId: doc.userId, payInFull: doc.payInFull }, by, { fromQuoteId: doc.id, origin });
   await setBillingStatus(doc.id, { status: "invoiced", invoiceId: created.id }, by, `Converted to invoice ${created.number}`);
   if (doc.enquiryId) await addEnquiryNote(doc.enquiryId, `Quote ${doc.number} converted to invoice ${created.number}`, by).catch(() => undefined);
   // The job is going ahead: have a draft purchase order ready for the sales person to send to the manufacturer.

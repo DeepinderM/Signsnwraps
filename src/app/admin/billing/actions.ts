@@ -112,7 +112,7 @@ export async function saveBilling(_: BillingResult, form: FormData): Promise<Bil
       if (problem) return { error: `Line ${index + 1} (“${item.description.split("\n")[0].slice(0, 60)}”): ${problem}. Only a super admin can change prices. Add it from the catalog instead.` };
     }
   }
-  const draft: BillingDraft = { store, customer, items, discount, title: field(form, "title", 200), notes: field(form, "notes", 3000), issueDate, dueDate, enquiryId, userId: existing?.userId ?? field(form, "userId", 128) };
+  const draft: BillingDraft = { store, customer, items, discount, title: field(form, "title", 200), notes: field(form, "notes", 3000), issueDate, dueDate, enquiryId, userId: existing?.userId ?? field(form, "userId", 128), payInFull: form.get("payInFull") === "on" };
 
   if (existing) {
     await updateBillingDoc(existing.id, draft, who(admin), existing.store);

@@ -27,7 +27,7 @@ export default async function NewBillingPage({ searchParams }: { searchParams: P
     customer: { name: allowedEnquiry?.name ?? user?.name ?? "", business: allowedEnquiry?.business ?? "", email: allowedEnquiry?.email ?? user?.email ?? "", phone: allowedEnquiry?.phone ?? user?.phone ?? "", address: "", abn: allowedEnquiry?.details?.ABN ?? "" },
     items: allowedEnquiry ? [{ description: allowedEnquiry.service, qty: 1, unitCents: 0, gst: true }] : [],
     discount: null, title: allowedEnquiry?.service ?? "", notes: "", issueDate, dueDate: addDays(issueDate, kind === "quote" ? settings.quoteValidDays : settings.paymentTermsDays),
-    enquiryId: allowedEnquiry?.id ?? "", userId: user?.uid ?? "",
+    enquiryId: allowedEnquiry?.id ?? "", userId: user?.uid ?? "", payInFull: false,
   };
   return <>
     <AdminNav admin={{ email: admin.email, role: admin.role, store: admin.store }} />

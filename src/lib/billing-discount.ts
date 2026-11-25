@@ -11,3 +11,6 @@ export function discountAmount(discount: Discount | null | undefined, subtotalCe
   return Math.min(Math.max(cents, 0), subtotalCents);
 }
 export const discountLabel = (discount: Discount | null | undefined) => !discount ? "" : `Discount${discount.type === "percent" ? ` (${Number(discount.value.toFixed(2))}%)` : ""}${discount.reason ? `: ${discount.reason}` : ""}`;
+
+/** Jobs over this total (incl. GST) can be paid in stages (40 / 40 / 20) unless staff choose "Payment at once only"; smaller ones are paid in full. Full payment is always offered. */
+export const STAGED_OVER_CENTS = 200_000;

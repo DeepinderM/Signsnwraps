@@ -480,3 +480,12 @@ span.admin-status{cursor:default}
 .offcut-offer b:first-child{color:#166534;font-size:13px;text-transform:uppercase;letter-spacing:.06em}.offcut-offer p{margin:0;font-size:14px;color:#13233A}
 .offcut-offer label{display:flex;gap:8px;align-items:center;font-size:14px;font-weight:600}.offcut-offer input[type=checkbox]{width:16px;height:16px;margin:0}
 .offcut-hint{margin:0;font-size:13px;color:#4A5568}.offcut-fit{margin:0;font-size:14px;color:#166534}
+
+/* Payment terms: "Payment at once only" switch under the totals */
+.bill-pay-terms { border: 1px solid var(--admin-line, #e2e6ee); border-radius: 12px; padding: 12px 14px; margin: 14px 0 0; }
+.bill-pay-terms legend { font-weight: 700; padding: 0 6px; }
+.bill-pay-toggle { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.bill-pay-toggle input { width: 18px; height: 18px; margin-top: 2px; flex: none; }
+.bill-pay-toggle span { display: grid; gap: 2px; }
+.bill-pay-toggle small { color: #5b6577; font-weight: 400; }
+.bill-pay-terms .admin-hint { margin: 8px 0 0; }

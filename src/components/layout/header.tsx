@@ -50,7 +50,14 @@ export function Header() {
   const closeMenu = () => setMenuOpen(false);
 
   useEffect(() => {
-    const onScroll = () => { setCompact(window.scrollY > 24); setShowSwitch(window.scrollY > 260); };
+    // Shrinking the header (and showing the switch row on phones) shortens the page, which moves the scroll position
+    // back. A single threshold makes it flip on and off in a loop (the logo pulses), so each state turns on and off
+    // at points well apart from each other.
+    const onScroll = () => {
+      const y = window.scrollY;
+      setCompact((was) => (was ? y > 4 : y > 64));
+      setShowSwitch((was) => (was ? y > 180 : y > 300));
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
